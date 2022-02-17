@@ -25,7 +25,7 @@ INSTALLED_APPS = (
     "rest_framework",
     "solo.apps.SoloAppConfig",
     # project applications
-    "eggslist",
+    "eggslist.users",
 )
 
 MIDDLEWARE = [
@@ -142,8 +142,8 @@ LOGGING = {
     },
 }
 
-# AUTH_USER_MODEL = "users.User"
-
+AUTH_USER_MODEL = "users.User"
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("app.authentication.CsrfExemptSessionAuthentication",),

@@ -10,4 +10,4 @@ admin.site.site_header = "Eggslist Admin"
 if settings.DEBUG:
     urlpatterns += static.static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static.static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += (path("api/docs/", include_docs_urls(title="Suvorov Park API")),)
+    urlpatterns.append(path("api/docs/", include_docs_urls(title="Eggslist API")))
