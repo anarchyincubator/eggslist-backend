@@ -60,6 +60,23 @@ DATABASES = {
 }
 
 #########################
+# Cache
+#########################
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://:{password}@{host}:{port}/{db}".format(
+            password=CONFIG.env("REDIS_PASSWORD"),
+            host=CONFIG.env("REDIS_HOST"),
+            port=CONFIG.env("REDIS_PORT"),
+            db=CONFIG.env("REDIS_DB"),
+        ),
+        "TIMEOUT": 1200,
+    }
+}
+
+#########################
 # Language
 #########################
 

@@ -17,28 +17,13 @@ def validate_password(value):
     return regex_validate(value)
 
 
-class SignInSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        help_text=_(
-            "User can submit either a username or email here. "
-            "Backend will automatically look for both"
-        ),
-    )
+class NewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, style={"input_type": "password"})
-
-
-class SignUpSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        allow_null=True,
-        help_text=_("If not provided Backend will automatically use email as username"),
+    password_repeat = serializers.CharField(
+        required=False,
+        style={"input_type": "password"},
+        write_only=True
     )
-    email = serializers.EmailField()
-    password = serializers.CharField(required=True, style={"input_type": "password"})
-    password_repeat = serializers.CharField(required=True, style={"input_type": "password"})
-
-    class Meta:
-        model = User
-        fields = ("username", "password", "password_repeat", "email")
 
     def validate(self, attrs):
         if attrs.get("password") != attrs.get("password_repeat"):
@@ -46,6 +31,24 @@ class SignUpSerializer(serializers.ModelSerializer):
 
         attrs.pop("password_repeat")
         return super().validate(attrs)
+
+
+class SignInSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        help_text=_(
+            "User can submit either a username or email here. "
+            "Backend will automatically look for both"
+        )
+    )
+    password = serializers.CharField(required=True, style={"input_type": "password"})
+
+
+class SignUpSerializer(NewPasswordSerializer):
+    username = serializers.CharField(
+        allow_null=True,
+        help_text=_("If not provided Backend will automatically use email as username"),
+    )
+    email = serializers.EmailField()
 
     def create(self, validated_data):
         username = validated_data.pop("username")
@@ -59,9 +62,31 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("first_name", "last_name", "email", "is_verified_seller", "avatar", "bio")
 
 
-class PasswordChangeSerializer(serializers.Serializer):
-    new_password = serializers.CharField(
+class PasswordChangeSerializer(NewPasswordSerializer):
+    pass
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        help_text=_(
+            "User needs to provide an email which will be "
+            "used to get a reset code"
+        )
+    )
+
+    def validate_email(self, value: str) -> str:
+        try:
+            User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"email": _("User with this email was not found")})
+        return value
+
+
+class PasswordResetConfirmSerializer(NewPasswordSerializer):
+    reset_code = serializers.CharField(
         required=True,
-        style={"input_type": "password"},
-        help_text="Password should be typed twice and validated on frontend",
+        help_text=_(
+            "User will get it in the email after they "
+            "requested rest procedure"
+        )
     )

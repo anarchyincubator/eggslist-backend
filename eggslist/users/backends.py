@@ -1,6 +1,6 @@
-from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.db.models import Q
 
 UserModel = get_user_model()
 
@@ -9,6 +9,7 @@ class EggslistAuthenticationBackend(ModelBackend):
     """
     Allow authentication using both username and email
     """
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         if username is None or password is None:
             return
