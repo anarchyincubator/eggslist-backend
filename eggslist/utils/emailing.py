@@ -18,7 +18,7 @@ def send_mailing(subject, mail_template, mail_object=None, users=None, email_add
         if send_to_users:
             context.update(user=users[i])
 
-        html_msg = render_to_string(mail_template, context=context, )
+        html_msg = render_to_string(mail_template, context=context)
         email = mail.message.EmailMessage(subject=subject, body=html_msg, to=[email_address])
         email.content_subtype = "html"
         emails.append(email)

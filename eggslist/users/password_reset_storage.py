@@ -1,7 +1,8 @@
 import secrets
-from django.core.cache import cache
+
 from django.contrib.auth import get_user_model
-from eggslist.users.exceptions import ResetCodeDoesNotExist
+from django.core.cache import cache
+
 
 User = get_user_model()
 
@@ -15,7 +16,7 @@ class PasswordResetStorage:
         cache.set(
             key=cls._PASSWORD_RESET_CODE_CACHE_KEY.format(reset_code=reset_code),
             value=email,
-            timeout=1200  # 20 min
+            timeout=1200,  # 20 min
         )
         return reset_code
 
@@ -27,4 +28,4 @@ class PasswordResetStorage:
         try:
             return User.objects.get(email=user_email)
         except User.DoesNotExist:
-            raise ResetCodeDoesNotExist()
+            return

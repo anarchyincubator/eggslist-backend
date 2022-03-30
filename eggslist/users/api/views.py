@@ -5,16 +5,14 @@ from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from eggslist.utils.emailing import send_mailing
+
 from eggslist.users.password_reset_storage import PasswordResetStorage
+from eggslist.utils.emailing import send_mailing
 from . import serializers
 
 User = get_user_model()
 
-RESET_CODE_NOT_FOUND_MSG = (
-    "Reset code does not exist or expired. "
-    "Please try again later"
-)
+RESET_CODE_NOT_FOUND_MSG = "Reset code does not exist or expired. Please try again later"
 
 
 class SignInAPIView(GenericAPIView):
@@ -72,7 +70,7 @@ class PasswordChangeAPIView(GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        request.user.set_password(raw_password=serializer.validated_data["new_password"])
+        request.user.set_password(raw_password=serializer.validated_data["password"])
         request.user.save()
         login(request=request, user=request.user)
         return Response(status=200)
@@ -95,7 +93,7 @@ class PasswordResetRequest(GenericAPIView):
             subject="Password Reset",
             mail_template="emails/password_reset.html",
             mail_object={"reset_link": password_reset_link},
-            users=[user]
+            users=[user],
         )
         return Response(status=200)
 
