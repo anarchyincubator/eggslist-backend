@@ -6,7 +6,7 @@ import environ
 
 ENV_APP_MODE = "APP_MODE"
 
-CONFIG_NAMES = ("database", "secrets", "email_smtp")
+CONFIG_NAMES = ("database", "secrets", "email_smtp", "redis")
 LOCAL_IPS = ("192.168.", "127.0.0.1")
 PATHS = {}
 SETTINGS: typing.Dict[str, typing.Any] = {}

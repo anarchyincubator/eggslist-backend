@@ -3,4 +3,17 @@ line-length = 99
 py37 = true
 safe = true
 include = '\.pyi?$'
-exclude = '\.git'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+)/
+'''
