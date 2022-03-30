@@ -25,7 +25,7 @@ INSTALLED_APPS = (
     "rest_framework",
     "solo.apps.SoloAppConfig",
     # project applications
-    "eggslist",
+    "eggslist.users",
 )
 
 MIDDLEWARE = [
@@ -56,6 +56,23 @@ DATABASES = {
         "PASSWORD": CONFIG.env("DB_PASSWORD"),
         "HOST": CONFIG.env("DB_HOST"),
         "PORT": CONFIG.env("DB_PORT", str, ""),
+    }
+}
+
+#########################
+# Cache
+#########################
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://:{password}@{host}:{port}/{db}".format(
+            password=CONFIG.env("REDIS_PASSWORD"),
+            host=CONFIG.env("REDIS_HOST"),
+            port=CONFIG.env("REDIS_PORT"),
+            db=CONFIG.env("REDIS_DB"),
+        ),
+        "TIMEOUT": 1200,
     }
 }
 
@@ -142,8 +159,9 @@ LOGGING = {
     },
 }
 
-# AUTH_USER_MODEL = "users.User"
-
+AUTH_USER_MODEL = "users.User"
+AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("app.authentication.CsrfExemptSessionAuthentication",),
