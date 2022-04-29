@@ -20,7 +20,7 @@ def validate_password(value):
 class NewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(required=True, style={"input_type": "password"})
     password_repeat = serializers.CharField(
-        required=False, style={"input_type": "password"}, write_only=True
+        required=True, style={"input_type": "password"}, write_only=True
     )
 
     def validate(self, attrs):
@@ -80,5 +80,5 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(NewPasswordSerializer):
     reset_code = serializers.CharField(
         required=True,
-        help_text=_("User will get it in the email after they " "requested rest procedure"),
+        help_text=_("User will get it in the email after they " "requested reset procedure"),
     )
