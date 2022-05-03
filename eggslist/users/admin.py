@@ -19,6 +19,8 @@ class UserAdmin(DjangoUserAdmin):
                     "email",
                     "is_verified_seller",
                     "bio",
+                    "phone_number",
+                    "zip_code",
                 )
             },
         ),

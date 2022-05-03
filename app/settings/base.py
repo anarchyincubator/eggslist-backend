@@ -23,9 +23,13 @@ INSTALLED_APPS = (
     "django.contrib.admin",
     # third-party packages
     "rest_framework",
+    "django_filters",
     "solo.apps.SoloAppConfig",
+    "phonenumber_field",
     # project applications
     "eggslist.users",
+    "eggslist.site_configuration",
+    "eggslist.store",
 )
 
 MIDDLEWARE = [
@@ -165,6 +169,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("app.authentication.CsrfExemptSessionAuthentication",),
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
 CORS_ORIGIN_ALLOW_ALL = True

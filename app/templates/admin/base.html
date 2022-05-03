@@ -3,51 +3,51 @@
 {% block extrastyle %}{{ block.super }}
 <style>
     :root {
-        --primary: #79aec8;
-        --secondary: #417690;
-        --accent: #f5dd5d;
-        --primary-fg: #fff;
+        --primary: #282220;
+        --secondary: var(--primary);
+        --accent: #F9AA29; 
+        --primary-fg: #FBECD5;
 
-        --body-fg: #333;
-        --body-bg: #fff;
-        --body-quiet-color: #666;
-        --body-loud-color: #000;
+        --body-fg: var(--primary);
+        --body-bg: #FAF2E6;
+        --body-quiet-color: #907A56;
+        --body-loud-color: #F2E2CA;
 
-        --header-color: #ffc;
+        --header-color: var(--accent); 
         --header-branding-color: var(--accent);
         --header-bg: var(--secondary);
         --header-link-color: var(--primary-fg);
 
-        --breadcrumbs-fg: #c4dce8;
+        --breadcrumbs-fg: #E49006;
         --breadcrumbs-link-fg: var(--body-bg);
         --breadcrumbs-bg: var(--primary);
 
-        --link-fg: #447e9b;
-        --link-hover-color: #036;
-        --link-selected-fg: #5b80b2;
+        --link-fg: var(--primary);
+        --link-hover-color: var(--primary) ;
+        --link-selected-fg: var(--accent);
 
-        --hairline-color: #e8e8e8;
-        --border-color: #ccc;
+        --hairline-color: #FCF9F2;
+        --border-color: #D5BB91;
 
-        --error-fg: #ba2121;
+        --error-fg: #B00020;
 
-        --message-success-bg: #dfd;
-        --message-warning-bg: #ffc;
-        --message-error-bg: #ffefef;
+        --message-success-bg: #008738;
+        --message-warning-bg: #FAA614;
+        --message-error-bg: #B00020;
 
-        --darkened-bg: #f8f8f8; /* A bit darker than --body-bg */
-        --selected-bg: #e4e4e4; /* E.g. selected table cells */
-        --selected-row: #ffc;
+        --darkened-bg: #F2E2CA; /* A bit darker than --body-bg */
+        --selected-bg: #D5BB91; /* E.g. selected table cells */
+        --selected-row: #FCF9F2;
 
-        --button-fg: #fff;
+        --button-fg: #FEF3E1;
         --button-bg: var(--primary);
-        --button-hover-bg: #609ab6;
+        --button-hover-bg: var(--primary);
         --default-button-bg: var(--secondary);
-        --default-button-hover-bg: #205067;
-        --close-button-bg: #888; /* Previously #bbb, contrast 1.92 */
-        --close-button-hover-bg: #747474;
-        --delete-button-bg: #ba2121;
-        --delete-button-hover-bg: #a41515;
+        --default-button-hover-bg: #605139;
+        --close-button-bg: #907A56; /* Previously #bbb, contrast 1.92 */
+        --close-button-hover-bg: #907A56;
+        --delete-button-bg: #B00020;
+        --delete-button-hover-bg: #B00020;
 
         --object-tools-fg: var(--button-fg);
         --object-tools-bg: var(--close-button-bg);
