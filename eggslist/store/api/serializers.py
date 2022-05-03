@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from eggslist.site_configuration.models import LocationZipCode
-from eggslist.store import models
+from eggslist.store import article_create_rule, models
+from eggslist.store.api import messages
 
 User = get_user_model()
 
@@ -47,6 +48,8 @@ class SellerSerializer(serializers.ModelSerializer):
 
 class ProductArticleSerializerSmall(serializers.ModelSerializer):
     seller = SellerSerializerSmall(read_only=True)
+    slug = serializers.CharField(read_only=True)
+    price = serializers.DecimalField(max_digits=8, decimal_places=2)
 
     class Meta:
         model = models.ProductArticle
@@ -59,9 +62,10 @@ class ProductArticleSerializer(serializers.ModelSerializer):
     is_banned = serializers.BooleanField(read_only=True)
     seller = SellerSerializer(many=False, read_only=True)
     subcategory = serializers.SlugRelatedField(
-        slug_field="name", queryset=models.Category.objects.all()
+        slug_field="name", queryset=models.Subcategory.objects.all()
     )
-    location = LocationSerializer(source="seller.zip_code")
+    you_may_also_like = serializers.SerializerMethodField()
+    more_from_this_farm = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -77,6 +81,21 @@ class ProductArticleSerializer(serializers.ModelSerializer):
             "seller",
             "is_banned",
             "seller_status",
-            "location",
+            "you_may_also_like",
+            "more_from_this_farm",
         )
         model = models.ProductArticle
+
+    def get_you_may_also_like(self, obj):
+        qs = models.ProductArticle.objects.get_best_similar_for(obj)
+        return ProductArticleSerializerSmall(qs, many=True).data
+
+    def get_more_from_this_farm(self, obj):
+        qs = models.ProductArticle.objects.get_from_the_same_farm_for(obj)
+        return ProductArticleSerializerSmall(qs, many=True).data
+
+    def create(self, validated_data):
+        try:
+            return models.ProductArticle.objects.create(**validated_data)
+        except article_create_rule.SellerNeedsMoreInfo:
+            raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_MORE_INFO})

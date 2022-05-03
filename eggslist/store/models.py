@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from eggslist.store import constants
+from eggslist.store.managers import ProductArticlManager
 from eggslist.utils.models import NameSlugModel, TitleSlugModel
 
 
@@ -60,6 +61,7 @@ class ProductArticle(TitleSlugModel):
         help_text=_("Nubmer of clicks on `Contact` button in the product page"),
         default=0,
     )
+    objects = ProductArticlManager()
 
     class Meta:
         verbose_name = _("product article")

@@ -13,15 +13,19 @@ class _SlugModelMixin:
     """
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(getattr(self, self.slug_field_name))
+        if not self.slug:
+            name = getattr(self, self.slug_field_name)
 
-        if self.slug_field_unique:
-            filter_query = {}
-            filter_query[self.slug_field_name] = getattr(self, self.slug_field_name)
+            self.slug = slugify(name)
 
-            if self.__class__.objects.filter(**filter_query).exists():
-                extra = secrets.token_hex(6)
-                self.slug += f"_{extra}"
+            if self.slug_field_unique:
+                filter_query = {}
+                filter_query[self.slug_field_name] = name
+
+                if self.__class__.objects.filter(**filter_query).exists():
+
+                    extra = secrets.token_hex(6)
+                    self.slug += f"_{extra}"
 
         super().save(*args, **kwargs)
 

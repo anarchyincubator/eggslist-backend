@@ -32,4 +32,4 @@ class SubcategoryAdmin(admin.ModelAdmin):
 class ProductArticleAdmin(admin.ModelAdmin):
     list_display = ("title", "subcategory", "seller")
     list_select_related = ("seller", "subcategory")
-    readonly_fields = ("date_created", "slug")
+    readonly_fields = ("engagement_count", "date_created", "slug")
