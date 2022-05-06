@@ -1,8 +1,13 @@
-CONFIG = __import__("app.config").config
+import environ
 
-if CONFIG.env("ENV") == "dev":
+env = environ.Env()
+APP_DIR = environ.Path(__file__) - 3
+env.read_env(str(APP_DIR.path(".env")))
+
+
+if env("ENVIRONMENT") == "dev":
     from .development import *  # noqa
-elif CONFIG.env("ENV") == "local":
+elif env("ENVIRONMENT") == "local":
     try:
         from .local import *  # noqa
     except ImportError:
