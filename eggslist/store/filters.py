@@ -1,13 +1,16 @@
 import django_filters as filters
 from django import forms
 from django.conf import settings
-
+from django.db.utils import DatabaseError
 from eggslist.site_configuration.models import LocationZipCode
 from eggslist.store import models
 
 if settings.DEBUG:
-    subcategory_choices = [(obj.slug, obj.slug) for obj in models.Subcategory.objects.all()]
-    zip_code_choices = [(obj.name, obj.name) for obj in LocationZipCode.objects.all()]
+    try:
+        subcategory_choices = [(obj.slug, obj.slug) for obj in models.Subcategory.objects.all()]
+        zip_code_choices = [(obj.name, obj.name) for obj in LocationZipCode.objects.all()]
+    except DatabaseError:
+        subcategory_choices = zip_code_choices = []
 else:
     subcategory_choices = zip_code_choices = []
 
