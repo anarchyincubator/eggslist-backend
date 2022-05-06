@@ -1,16 +1,31 @@
-CONFIG = __import__("app.config").config
-SECRET_KEY = CONFIG.env("SECRET_KEY")
+from app.settings import env, APP_DIR
 
-DEBUG = False
+########################
+# Environment Variables
+########################
+DATA_DIR = APP_DIR.path("..", "data")
+CONFIG_DIR = APP_DIR.path("..", "conf")
 
-ALLOWED_HOSTS = ["*"]
+PATHS = {
+    "APP_DIR": str(APP_DIR),
+    "DATA_DIR": str(DATA_DIR),
+    "LOG_DIR": str(APP_DIR.path("..", "logs")),
+    "CONFIG_DIR": str(CONFIG_DIR),
+    "TMP_DIR": str(APP_DIR.path("..", "tmp")),
+    "CACHE_DIR": str(APP_DIR.path("..", "cache")),
+    "STATIC_DIR": str(DATA_DIR.path("static", APP_DIR)),
+}
+SECRET_KEY = env("SECRET_KEY")
 
-SITE_ID = 1
-SITE_URL = "https://eggslist.com"
 
 #########################
 # Application definition
 #########################
+
+DEBUG = False
+ALLOWED_HOSTS = ["*"]
+SITE_ID = 1
+SITE_URL = "https://eggslist.com"
 
 INSTALLED_APPS = (
     # django package
@@ -55,11 +70,11 @@ WSGI_APPLICATION = "app.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": CONFIG.env("DB_NAME"),
-        "USER": CONFIG.env("DB_USER"),
-        "PASSWORD": CONFIG.env("DB_PASSWORD"),
-        "HOST": CONFIG.env("DB_HOST"),
-        "PORT": CONFIG.env("DB_PORT", str, ""),
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT", str, ""),
     }
 }
 
@@ -71,10 +86,10 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": "redis://:{password}@{host}:{port}/{db}".format(
-            password=CONFIG.env("REDIS_PASSWORD"),
-            host=CONFIG.env("REDIS_HOST"),
-            port=CONFIG.env("REDIS_PORT"),
-            db=CONFIG.env("REDIS_DB"),
+            password=env("REDIS_PASSWORD"),
+            host=env("REDIS_HOST"),
+            port=env("REDIS_PORT"),
+            db=env("REDIS_DB"),
         ),
         "TIMEOUT": 1200,
     }
@@ -95,11 +110,11 @@ USE_TZ = True
 #########################
 
 
-STATIC_ROOT = CONFIG.PATHS["STATIC_DIR"]
+STATIC_ROOT = PATHS["STATIC_DIR"]
 STATIC_URL = "/django-static/"
-MEDIA_ROOT = CONFIG.PATHS["DATA_DIR"]
+MEDIA_ROOT = PATHS["DATA_DIR"]
 
-STATICFILES_DIRS = (CONFIG.PATHS["APP_DIR"] + "/app/static/",)
+STATICFILES_DIRS = (PATHS["APP_DIR"] + "/app/static/",)
 MEDIA_URL = "/data/"
 
 STATICFILES_FINDERS = (
@@ -107,8 +122,8 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 )
 
-FILE_UPLOAD_TEMP_DIR = CONFIG.PATHS["TMP_DIR"]
-SESSION_FILE_PATH = CONFIG.PATHS["TMP_DIR"]
+FILE_UPLOAD_TEMP_DIR = PATHS["TMP_DIR"]
+SESSION_FILE_PATH = PATHS["TMP_DIR"]
 
 ADMIN_URL = "admin/"
 
@@ -116,14 +131,14 @@ ADMIN_URL = "admin/"
 # Other settings (Templates, Locale, Context)
 #########################
 
-LOCALE_PATHS = (str(CONFIG.APP_DIR.path("app", "locale")),)
+LOCALE_PATHS = (str(APP_DIR.path("app", "locale")),)
 
 AUTH_PASSWORD_VALIDATORS = ()
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [str(CONFIG.APP_DIR.path("app", "templates"))],
+        "DIRS": [str(APP_DIR.path("app", "templates"))],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -180,10 +195,10 @@ CORS_ALLOW_CREDENTIALS = True
 ################
 
 
-EMAIL_HOST = CONFIG.env("EMAIL_HOST")
-EMAIL_HOST_USER = CONFIG.env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = CONFIG.env("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = CONFIG.env("DEFAULT_FROM_EMAIL")
-EMAIL_PORT = CONFIG.env("EMAIL_PORT")
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_USE_SSL = True
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
