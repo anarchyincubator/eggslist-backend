@@ -17,6 +17,6 @@ COPY ./entrypoint.sh .
 RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
 RUN chmod +x /usr/src/app/entrypoint.sh
 # Copy project
-COPY .. .
+COPY . .
 # Run Entrypoint script
 ENTRYPOINT ["./entrypoint.sh"]
