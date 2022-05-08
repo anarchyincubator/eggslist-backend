@@ -47,7 +47,7 @@ jobs:
           docker pull ${{ env.WEB_IMAGE }} || true
       - name: Build images
         run: |
-          docker build -f ./deploy/Dockerfile . -t eggslist_backend
+          docker build -f ./deploy/Dockerfile -t ${{ env.WEB_IMAGE }} .
       - name: Push images
         run: |
           docker push ${{ env.WEB_IMAGE }}
