@@ -64,6 +64,7 @@ jobs:
           echo WEB_IMAGE=${{ env.WEB_IMAGE }} >> .env
           echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
           echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
+          echo DIGITAL_OCEAN_TOKEN=${{ secrets.DIGITAL_OCEAN_TOKEN }} >> .env
       - name: Add the private SSH key to the ssh-agent
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -76,11 +77,14 @@ jobs:
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
+          scp  -o StrictHostKeyChecking=no -r ./.env root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}:/eggslist/github-deployer
           ssh -o StrictHostKeyChecking=no root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
-            docker login registry.digitalocean.com -u ${{ secrets.DIGITAL_OCEAN_TOKEN }} -p ${{ secrets.DIGITAL_OCEAN_TOKEN }}
-            docker rm ${{ secrets.WEB_IMAGE }} --force
-            docker rmi ${{ secrets.WEB_IMAGE }} --force
+            cd /eggslist/github-deployer
+            source .env
+            docker login registry.digitalocean.com -u $DIGITAL_OCEAN_TOKEN -p $DIGITAL_OCEAN_TOKEN
+            docker rm $WEB_IMAGE --force
+            docker rmi $WEB_IMAGE --force
             docker system prune -a
-            docker pull ${{ secrets.WEB_IMAGE }}
-            docker run --name eggslist -p 8000:8000 -d ${{ secrets.WEB_IMAGE }}
+            docker pull $WEB_IMAGE
+            docker run --name eggslist -p 8000:8000 -d $WEB_IMAGE
           ENDSSH
