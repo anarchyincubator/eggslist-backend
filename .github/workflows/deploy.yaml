@@ -3,7 +3,7 @@ name: Continuous Integration and Delivery
 on: [push]
 
 env:
-  WEB_IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr ' [:upper:]' '[:lower:]')/eggslist_backend
+  WEB_IMAGE: ghcr.io/anarchyincubator/eggslist-backend/eggslist_backend
 
 jobs:
 
