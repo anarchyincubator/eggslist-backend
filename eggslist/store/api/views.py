@@ -21,7 +21,7 @@ class ProductPagination(PageNumberPagination):
     page_size = 9
 
 
-class ProductArticleListAPIView(generics.ListCreateAPIView):
+class ProductArticleListAPIView(generics.ListAPIView):
     serializer_class = serializers.ProductArticleSerializerSmall
     queryset = models.ProductArticle.objects.get_all_prefetched()
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
@@ -29,13 +29,11 @@ class ProductArticleListAPIView(generics.ListCreateAPIView):
     search_fields = ("title", "description")
     ordering_fields = ("price", "date_created")
     pagination_class = ProductPagination
+
+
+class ProductArticleCreateAPIView(generics.CreateAPIView):
+    serializer_class = serializers.ProductArticleSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def get_serializer_class(self):
-        if self.request.method == "POST":
-            return serializers.ProductArticleSerializer
-
-        return serializers.ProductArticleSerializerSmall
 
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
