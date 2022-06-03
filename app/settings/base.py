@@ -1,4 +1,4 @@
-from app.settings import env, APP_DIR
+from app.settings import APP_DIR, env
 
 ########################
 # Environment Variables
@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     "django_filters",
     "solo.apps.SoloAppConfig",
     "phonenumber_field",
+    "storages",
     # project applications
     "eggslist.users",
     "eggslist.site_configuration",
@@ -110,20 +111,38 @@ USE_TZ = True
 #########################
 
 
-STATIC_ROOT = PATHS["STATIC_DIR"]
-STATIC_URL = "/django-static/"
-MEDIA_ROOT = PATHS["DATA_DIR"]
+# STATIC_ROOT = PATHS["STATIC_DIR"]
+# STATIC_URL = "/django-static/"
+# MEDIA_ROOT = PATHS["DATA_DIR"]
 
-STATICFILES_DIRS = (PATHS["APP_DIR"] + "/app/static/",)
-MEDIA_URL = "/data/"
+# STATICFILES_DIRS = (PATHS["APP_DIR"] + "/app/static/",)
+# MEDIA_URL = "/data/"
 
-STATICFILES_FINDERS = (
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-)
+# STATICFILES_FINDERS = (
+#    "django.contrib.staticfiles.finders.FileSystemFinder",
+#    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+# )
 
-FILE_UPLOAD_TEMP_DIR = PATHS["TMP_DIR"]
-SESSION_FILE_PATH = PATHS["TMP_DIR"]
+# FILE_UPLOAD_TEMP_DIR = PATHS["TMP_DIR"]
+# SESSION_FILE_PATH = PATHS["TMP_DIR"]
+
+
+# settings
+AWS_ACCESS_KEY_ID = env("DO_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("DO_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("DO_STORAGE_BUCKET_NAME")
+AWS_DEFAULT_ACL = "public-read"
+AWS_S3_ENDPOINT_URL = "https://nyc3.digitaloceanspaces.com"
+AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+# static settings
+AWS_LOCATION = "backend-static"
+STATIC_URL = f"https://{AWS_S3_ENDPOINT_URL}/{AWS_LOCATION}/"
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+# public media settings
+PUBLIC_MEDIA_LOCATION = "media"
+MEDIA_URL = f"https://{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/"
+DEFAULT_FILE_STORAGE = "app.storage_backends.PublicMediaStorage"
+
 
 ADMIN_URL = "admin/"
 
