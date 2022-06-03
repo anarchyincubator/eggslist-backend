@@ -8,11 +8,9 @@ from rest_framework.views import APIView
 
 from eggslist.users.password_reset_storage import PasswordResetStorage
 from eggslist.utils.emailing import send_mailing
-from . import serializers
+from . import messages, serializers
 
 User = get_user_model()
-
-RESET_CODE_NOT_FOUND_MSG = "Reset code does not exist or expired. Please try again later"
 
 
 class SignInAPIView(GenericAPIView):
@@ -20,10 +18,11 @@ class SignInAPIView(GenericAPIView):
     permission_classes = (~IsAuthenticated,)
 
     @staticmethod
-    def login(request, username, password):
-        user = authenticate(request=request, username=username, password=password)
+    def login(request, email, password):
+        user = authenticate(request=request, email=email, password=password)
+        print("I AM IN LOGIN", user)
         if not user:
-            raise ValidationError({"message": "Invalid credentials"})
+            raise ValidationError({"message": messages.INVALID_CREDENTIALS})
 
         login(request=request, user=user)
         return user
@@ -109,7 +108,7 @@ class PasswordResetConfirm(GenericAPIView):
             reset_code=serializer.validated_data["reset_code"]
         )
         if not user:
-            raise ValidationError({"reset_code": RESET_CODE_NOT_FOUND_MSG})
+            raise ValidationError({"reset_code": messages.RESET_CODE_NOT_FOUND})
 
         user.set_password(raw_password=serializer.validated_data["password"])
         user.save()
