@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
+from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+
+from eggslist.users.api import messages
 
 User = get_user_model()
 
@@ -17,41 +20,26 @@ def validate_password(value):
     return regex_validate(value)
 
 
-class NewPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(required=True, style={"input_type": "password"})
-    password_repeat = serializers.CharField(
-        required=True, style={"input_type": "password"}, write_only=True
-    )
-
-    def validate(self, attrs):
-        if attrs.get("password") != attrs.get("password_repeat"):
-            raise serializers.ValidationError({"password": "Passwords are not the same"})
-
-        attrs.pop("password_repeat")
-        return super().validate(attrs)
-
-
 class SignInSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        help_text=_(
-            "User can submit either a username or email here. "
-            "Backend will automatically look for both"
-        )
-    )
+    email = serializers.CharField()
     password = serializers.CharField(required=True, style={"input_type": "password"})
 
 
-class SignUpSerializer(NewPasswordSerializer):
-    username = serializers.CharField(
-        allow_null=True,
-        help_text=_("If not provided Backend will automatically use email as username"),
-    )
+class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
+    first_name = serializers.CharField()
+    password = serializers.CharField(style={"input_type": "password"})
+
+    class Meta:
+        model = User
+        fields = ("email", "first_name", "password")
 
     def create(self, validated_data):
-        username = validated_data.pop("username")
-        username = username or validated_data["email"]
-        return User.objects.create_user(username=username, **validated_data)
+        try:
+            return User.objects.create_user(**validated_data)
+        except IntegrityError as e:
+            print(e)
+            raise serializers.ValidationError({"email": messages.EMAIL_ALREADY_EXISTS})
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -60,8 +48,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("first_name", "last_name", "email", "is_verified_seller", "avatar", "bio")
 
 
-class PasswordChangeSerializer(NewPasswordSerializer):
-    pass
+class PasswordChangeSerializer(serializers.Serializer):
+    password = serializers.CharField(style={"input_type": "password"})
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
@@ -73,12 +61,13 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         try:
             User.objects.get(email=value)
         except User.DoesNotExist:
-            raise serializers.ValidationError({"email": _("User with this email was not found")})
+            raise serializers.ValidationError({"email": messages.EMAIL_NOT_FOUND})
         return value
 
 
-class PasswordResetConfirmSerializer(NewPasswordSerializer):
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    password = serializers.CharField(style={"input_type": "password"})
     reset_code = serializers.CharField(
         required=True,
-        help_text=_("User will get it in the email after they " "requested reset procedure"),
+        help_text=_("User will get it in the email after they requested reset procedure"),
     )

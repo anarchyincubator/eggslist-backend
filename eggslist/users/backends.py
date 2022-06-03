@@ -10,11 +10,11 @@ class EggslistAuthenticationBackend(ModelBackend):
     Allow authentication using both username and email
     """
 
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        if username is None or password is None:
+    def authenticate(self, request, username=None, email=None, password=None, **kwargs):
+        if (username is None and email is None) or password is None:
             return
         try:
-            user = UserModel.objects.get(Q(username=username) | Q(email=username))
+            user = UserModel.objects.get(Q(username=username) | Q(email=email))
         except UserModel.DoesNotExist:
             # Run the default password hasher once to reduce the timing
             # difference between an existing and a nonexistent user (#20760).
