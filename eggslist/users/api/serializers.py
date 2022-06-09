@@ -1,15 +1,18 @@
+import typing as t
+
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from eggslist.site_configuration.models import LocationCity
 from eggslist.users.api import messages
 
 User = get_user_model()
 
 
-def validate_password(value):
+def validate_password(value: str):
     regex_validate = RegexValidator(
         regex=r"^(?=.*\d).{8,}",
         message=_(
@@ -34,7 +37,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ("email", "first_name", "password")
 
-    def create(self, validated_data):
+    def create(self, validated_data: t.Dict[str, t.Any]):
         try:
             return User.objects.create_user(**validated_data)
         except IntegrityError as e:
@@ -71,3 +74,13 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         required=True,
         help_text=_("User will get it in the email after they requested reset procedure"),
     )
+
+
+class UserLocationSerializer(serializers.ModelSerializer):
+    city = serializers.CharField(source="name", read_only=True)
+    state = serializers.CharField(source="state.name", read_only=True)
+    country = serializers.CharField(source="state.country.name", read_only=True)
+
+    class Meta:
+        model = LocationCity
+        fields = ("city", "state", "country")

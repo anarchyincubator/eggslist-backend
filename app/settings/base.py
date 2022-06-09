@@ -191,7 +191,8 @@ REST_FRAMEWORK = {
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-
+GEOIP_PATH = str(APP_DIR.path("app", "geolite2"))
+GEO_ZIP_PATH = f"{GEOIP_PATH}/uszips_states.csv"
 ################
 # Email sending
 ################
