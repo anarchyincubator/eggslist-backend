@@ -13,7 +13,7 @@ def locate_ip(ip_address: str) -> t.Optional[str]:
     except AddressNotFoundError:
         location = {}
     try:
-        user_location = LocationCity.objects.get(
+        user_location = LocationCity.select_realted("state__country").objects.get(
             name=location.get("city", ""), state__name=location.get("region", "")
         )
     except LocationCity.DoesNotExist:

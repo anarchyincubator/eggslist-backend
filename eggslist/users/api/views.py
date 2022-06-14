@@ -8,10 +8,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from eggslist.site_configuration.models import LocationCity
 from eggslist.users.determine_location import locate_ip
 from eggslist.users.password_reset_storage import PasswordResetStorage
 from eggslist.utils.emailing import send_mailing
-from . import messages, serializers
+from . import constants, messages, serializers
 
 if t.TYPE_CHECKING:
     from django.http.request import HttpRequest
@@ -53,6 +54,10 @@ class SignUpAPIView(GenericAPIView):
 
 
 class SignOutAPIView(APIView):
+    """
+    Remove Auth cookies
+    """
+
     permission_classes = (IsAuthenticated,)
 
     def post(self, request: "HttpRequest", *args, **kwargs):
@@ -82,6 +87,11 @@ class PasswordChangeAPIView(GenericAPIView):
 
 
 class PasswordResetRequest(GenericAPIView):
+    """
+    Password Reset API. Backend will try to find the user given the email in the database and
+    send secret link to the user.
+    """
+
     serializer_class = serializers.PasswordResetRequestSerializer
     permission_classes = (~IsAuthenticated,)
 
@@ -104,6 +114,11 @@ class PasswordResetRequest(GenericAPIView):
 
 
 class PasswordResetConfirm(GenericAPIView):
+    """
+    Password Reset Confirm API. Find a reset code associated to the particular user
+    in the database
+    """
+
     serializer_class = serializers.PasswordResetConfirmSerializer
     permission_classes = (~IsAuthenticated,)
 
@@ -121,16 +136,51 @@ class PasswordResetConfirm(GenericAPIView):
         return Response(status=200)
 
 
-class LocationAPIView(GenericAPIView):
+class LocationAPIView(RetrieveAPIView):
+    """
+    Location Retrieve API View. Return current user's location
+    if backend application was not able to locate the user.
+    This can happend if the one uses VPN, or using the website
+    from outside of the US.
+    """
+
     serializer_class = serializers.UserLocationSerializer
 
-    def post(self, request: "HttpRequest", *args, **kwargs):
-        ip_address = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", ""))
-        user_location = locate_ip(ip_address)
-        if user_location is None:
-            data = {"city": None, "state": None, "country": None}
-        else:
-            serializer = self.get_serializer(instance=user_location)
-            data = serializer.data
+    def get_object(self):
+        user_city_location_slug = self.request.COOKIES.get(constants.USER_LOCATION_COOKIE_NAME)
+        if user_city_location_slug is not None:
+            return LocationCity.objects.select_related("state__country").get(
+                slug=user_city_location_slug
+            )
+        ip_address = self.request.META.get(
+            "HTTP_X_FORWARDED_FOR", self.request.META.get("REMOTE_ADDR", "")
+        )
+        user_city_location = locate_ip(ip_address)
 
-        return Response(status=200, data=data)
+        return user_city_location
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response()
+
+        serializer = self.get_serializer(instance)
+        response = Response(serializer.data)
+        response.set_cookie(constants.USER_LOCATION_COOKIE_NAME, value=instance.slug)
+        return response
+
+
+class SetLocationAPIView(GenericAPIView):
+    """
+    Set a location for the user when user explicitly provided it
+    """
+
+    serializer_class = serializers.SetLocationSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        city_location_instance = LocationCity.objects.get(slug=serializer.validated_data["slug"])
+        response = Response()
+        response.set_cookie(constants.USER_LOCATION_COOKIE_NAME, city_location_instance.slug)
+        return response

@@ -45,12 +45,6 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"email": messages.EMAIL_ALREADY_EXISTS})
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("first_name", "last_name", "email", "is_verified_seller", "avatar", "bio")
-
-
 class PasswordChangeSerializer(serializers.Serializer):
     password = serializers.CharField(style={"input_type": "password"})
 
@@ -77,10 +71,30 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 
 class UserLocationSerializer(serializers.ModelSerializer):
-    city = serializers.CharField(source="name", read_only=True)
-    state = serializers.CharField(source="state.name", read_only=True)
-    country = serializers.CharField(source="state.country.name", read_only=True)
+    city = serializers.CharField(source="name")
+    state = serializers.CharField(source="state.name")
+    country = serializers.CharField(source="state.country.name")
 
     class Meta:
         model = LocationCity
         fields = ("city", "state", "country")
+
+
+class SetLocationSerializer(serializers.Serializer):
+    slug = serializers.CharField(help_text=_("Slug of a city location object"))
+
+
+class UserSerializer(serializers.ModelSerializer):
+    user_location = UserLocationSerializer(required=False, read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "first_name",
+            "last_name",
+            "user_location",
+            "email",
+            "is_verified_seller",
+            "avatar",
+            "bio",
+        )

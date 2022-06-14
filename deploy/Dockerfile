@@ -5,16 +5,13 @@ FROM python:3.9-slim-buster as builder
 WORKDIR /usr/src/app
 RUN mkdir /usr/src/tmp
 # Install required unix libraries
-#RUN apk add zlib-dev jpeg-dev gcc musl-dev
-#RUN apk --no-cache add musl-dev linux-headers g++ jpeg-dev zlib-dev
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 # Install dependencies
-#RUN pip install --upgrade cython
+
 RUN python -m pip install -U --force-reinstall pip
 COPY ./requirements.txt .
-#RUN pip install -r requirements.txt
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
 
 # Process Entrypoint
@@ -25,7 +22,6 @@ RUN chmod +x /usr/src/app/entrypoint.sh
 
 FROM python:3.9-slim-buster as main
 # create the app user
-#RUN addgroup app && adduser app -G app
 # create the appropriate directories
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
