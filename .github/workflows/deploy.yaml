@@ -3,7 +3,7 @@ name: Continuous Integration and Delivery
 on: [push]
 
 env:
-  WEB_IMAGE: registry.digitalocean.com/eggslist-container/eggslist_backend:latest
+  WEB_IMAGE: fedorgrab/eggslist_backend:latest
 
 jobs:
 
@@ -42,7 +42,7 @@ jobs:
           echo "WEB_IMAGE=$(echo ${{env.WEB_IMAGE}} )" >> $GITHUB_ENV
 
       - name: Log in to GitHub Packages
-        run: docker login registry.digitalocean.com -u ${{ secrets.DIGITAL_OCEAN_TOKEN }} -p ${{ secrets.DIGITAL_OCEAN_TOKEN }}
+        run: docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Pull images
@@ -84,7 +84,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
             cd /eggslist/github-deployer
             source .env
-            docker login registry.digitalocean.com -u $DIGITAL_OCEAN_TOKEN -p $DIGITAL_OCEAN_TOKEN
+            docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker rm eggslist_backend --force
             docker rmi $WEB_IMAGE --force
             docker system prune --force

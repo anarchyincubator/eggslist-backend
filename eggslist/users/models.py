@@ -1,7 +1,14 @@
+import typing as t
+
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+
+from eggslist.users.user_location_storage import UserLocationStorage
+
+if t.TYPE_CHECKING:
+    from eggslist.site_configuration.models import LocationCity
 
 
 class EggslistUserManager(UserManager):
@@ -37,6 +44,14 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
     )
     objects = EggslistUserManager()
+
+    @property
+    def user_location(self) -> "LocationCity":
+        return UserLocationStorage.get_user_location(self)
+
+    @user_location.setter
+    def user_location(self, value: "LocationCity"):
+        UserLocationStorage.set_user_location(self, city_location=value)
 
     class Meta:
         verbose_name = _("user")
