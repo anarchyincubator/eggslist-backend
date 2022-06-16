@@ -35,7 +35,8 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    "django.contrib.admin",
+    # "django.contrib.admin",
+    "app.admin.EggslistAdminConfig",
     # third-party packages
     "rest_framework",
     "django_filters",
@@ -46,6 +47,7 @@ INSTALLED_APPS = (
     "eggslist.users",
     "eggslist.site_configuration",
     "eggslist.store",
+    "eggslist.blogs",
 )
 
 MIDDLEWARE = [
