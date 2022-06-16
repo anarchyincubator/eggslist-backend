@@ -29,7 +29,8 @@ class SubcategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.ProductArticle)
-class ProductArticleAdmin(admin.ModelAdmin):
-    list_display = ("title", "subcategory", "seller")
+class ProductArticleAdmin(ImageAdmin):
+    list_display = ("title", "subcategory", "seller", "seller_status", "is_banned")
+    list_display_images = ("image",)
     list_select_related = ("seller", "subcategory")
     readonly_fields = ("engagement_count", "date_created", "slug")
