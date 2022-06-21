@@ -23,7 +23,7 @@ SECRET_KEY = env("SECRET_KEY")
 #########################
 
 DEBUG = False
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "nginx", "localhost", "eggslist_backend"]
 SITE_ID = 1
 SITE_URL = "https://eggslist.com"
 
