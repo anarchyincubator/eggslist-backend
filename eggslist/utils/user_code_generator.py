@@ -27,7 +27,7 @@ class EmailCodeVerification:
         return f"email_code::{cls.code_cache_key}::{code}"
 
     @classmethod
-    def generate_code(cls, email: str):
+    def generate_code(cls, email: str) -> str:
         code = secrets.token_hex()
         cache.set(key=cls._get_cache_key(code), value=email, timeout=cls.code_ttl)
         return code
@@ -41,10 +41,20 @@ class EmailCodeVerification:
             return
 
     @classmethod
-    def generate_and_send_email_code(cls, email) -> str:
+    def generate_and_send_email_code(
+        cls, *, email: t.Optional[str] = None, user: t.Optional[User] = None
+    ) -> str:
+        if email is None and user is None:
+            raise ValueError("Either email or user need to be provided")
+
+        if email is None:
+            email = user.email
+        if user is None:
+            user = User.objects.get(email=email)
+
         code = cls.generate_code(email=email)
         user_code_link = f"{settings.SITE_URL}/{cls.link_endpoint}?{cls.link_param_key}={code}"
-        user = User.objects.get(email=email)
+
         send_mailing(
             subject=cls.mail_subject,
             mail_template=cls.mail_template,

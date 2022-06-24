@@ -45,6 +45,7 @@ class User(AbstractUser):
         verbose_name=_("zip code"),
         to="site_configuration.LocationZipCode",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
     )
     objects = EggslistUserManager()

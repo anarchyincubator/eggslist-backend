@@ -11,6 +11,7 @@ class PasswordResetCodeVerification(EmailCodeVerification):
 
 class UserEmailVerification(EmailCodeVerification):
     code_cache_key = "email-verify"
+    code_ttl = 60 * 60 * 5  # 5 Hours
     link_endpoint = "email-verify"
     link_param_key = "verification_code"
     mail_subject = "Eggslist Email Verification"

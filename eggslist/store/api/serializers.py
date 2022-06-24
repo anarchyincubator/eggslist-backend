@@ -99,3 +99,5 @@ class ProductArticleSerializer(serializers.ModelSerializer):
             return models.ProductArticle.objects.create(**validated_data)
         except article_create_rule.SellerNeedsMoreInfo:
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_MORE_INFO})
+        except article_create_rule.SellerNeedsEmailVerification:
+            raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_EMAIL_VERIFICATION})
