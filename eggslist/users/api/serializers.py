@@ -64,9 +64,16 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     password = serializers.CharField(style={"input_type": "password"})
-    reset_code = serializers.CharField(
+    code = serializers.CharField(
         required=True,
         help_text=_("User will get it in the email after they requested reset procedure"),
+    )
+
+
+class EmailVerifyConfirmSerializer(serializers.Serializer):
+    code = serializers.CharField(
+        required=True,
+        help_text=_("The code user gets in the email message in order to verify themselves"),
     )
 
 
@@ -94,6 +101,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "user_location",
             "email",
+            "is_email_verified",
             "is_verified_seller",
             "avatar",
             "bio",

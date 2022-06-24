@@ -29,9 +29,13 @@ class EggslistUserManager(UserManager):
             username=username, email=email, password=password, **extra_fields
         )
 
+    def verify_email(self, email: str):
+        self.filter(email=email).update(is_email_verified=True)
+
 
 class User(AbstractUser):
     email = models.EmailField(verbose_name=_("email address"), unique=True)
+    is_email_verified = models.BooleanField(verbose_name=_("is email verified"), default=False)
     phone_number = PhoneNumberField(verbose_name=_("phone number"), null=True, blank=True)
     avatar = models.ImageField(verbose_name=_("avatar"), null=True, blank=True)
     is_verified_seller = models.BooleanField(verbose_name=_("is verified seller"), default=False)
@@ -41,6 +45,7 @@ class User(AbstractUser):
         verbose_name=_("zip code"),
         to="site_configuration.LocationZipCode",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
     )
     objects = EggslistUserManager()
