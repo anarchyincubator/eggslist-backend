@@ -1,6 +1,5 @@
 import typing as t
 
-from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
@@ -10,8 +9,7 @@ from rest_framework.views import APIView
 
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users.determine_location import locate_ip
-from eggslist.users.password_reset_storage import PasswordResetStorage
-from eggslist.utils.emailing import send_mailing
+from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from . import constants, messages, serializers
 
 if t.TYPE_CHECKING:
@@ -98,18 +96,12 @@ class PasswordResetRequest(GenericAPIView):
     def post(self, request: "HttpRequest", *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        reset_code = PasswordResetStorage.generate_password_reset_code(
-            email=serializer.validated_data["email"]
-        )
-
-        user = User.objects.get(email=serializer.validated_data["email"])
-        password_reset_link = f"{settings.SITE_URL}/password-reset?reset_code={reset_code}"
-        send_mailing(
-            subject="Password Reset",
-            mail_template="emails/password_reset.html",
-            mail_object={"reset_link": password_reset_link},
-            users=[user],
-        )
+        try:
+            PasswordResetCodeVerification.generate_and_send_email_code(
+                email=serializer.validated_data["email"]
+            )
+        except User.DoesNotExist:
+            raise ValidationError({"email": messages.EMAIL_NOT_FOUND})
         return Response(status=200)
 
 
@@ -125,14 +117,44 @@ class PasswordResetConfirm(GenericAPIView):
     def post(self, request: "HttpRequest", *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = PasswordResetStorage.authenticate_password_reset_code(
-            reset_code=serializer.validated_data["reset_code"]
+        user = PasswordResetCodeVerification.verify_email_code(
+            code=serializer.validated_data["code"]
         )
         if not user:
-            raise ValidationError({"reset_code": messages.RESET_CODE_NOT_FOUND})
+            raise ValidationError({"code": messages.RESET_CODE_NOT_FOUND})
 
         user.set_password(raw_password=serializer.validated_data["password"])
         user.save()
+        return Response(status=200)
+
+
+class EmailVerifyRequestAPIView(APIView):
+    """
+    Request an email verification email with a link to follow up to verify it
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request: "HttpRequest", *args, **kwargs):
+        UserEmailVerification.generate_and_send_email_code(email=self.request.user.email)
+        return Response(status=200)
+
+
+class EmailVerifyConfirmAPIView(GenericAPIView):
+    """
+    Verify User email from using a code sent to a user's email after sign up or on demand
+    """
+
+    serializer_class = serializers.EmailVerifyConfirmSerializer
+
+    def post(self, request: "HttpRequest", *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = UserEmailVerification.verify_email_code(code=serializer.validated_data["code"])
+        if not user:
+            raise ValidationError({"code": messages.EMAIL_VERIFICATION_CODE_NOT_FOUND})
+
+        User.objects.verify_email(email=user.email)
         return Response(status=200)
 
 

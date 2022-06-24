@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify email</title>
+</head>
+<body>
+<div id="email-container">
+  <div id="main-text-container">
+    <h2>Dear, {% firstof user.first_name 'member' %}</h2>
+    <p> We kindly ask you to verify your email to get the access to web service features, please follow 
+        <a href="{{ obj.user_code_link}}">this link</a>
+    </p>
+  </div>
+</div>
+</body>
+</html>

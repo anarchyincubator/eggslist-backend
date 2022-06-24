@@ -17,6 +17,7 @@ class UserAdmin(DjangoUserAdmin):
                     "first_name",
                     "last_name",
                     "email",
+                    "is_email_verified",
                     "is_verified_seller",
                     "bio",
                     "phone_number",
