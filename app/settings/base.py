@@ -187,7 +187,10 @@ AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBacken
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": ("app.authentication.CsrfExemptSessionAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "app.authentication.CsrfExemptSessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
