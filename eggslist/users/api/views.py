@@ -6,6 +6,7 @@ from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users.determine_location import locate_ip
@@ -37,6 +38,13 @@ class SignInAPIView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         self.login(request=request, **serializer.validated_data)
         return Response(status=200)
+
+
+class JWTSignInAPIView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        response.data.pop("refresh")
+        return response
 
 
 class SignUpAPIView(GenericAPIView):

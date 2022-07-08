@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from app.settings import APP_DIR, env
 
 ########################
@@ -183,9 +185,16 @@ LOGGING = {
     },
 }
 
-AUTH_USER_MODEL = "users.User"
-AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+GEOIP_PATH = str(APP_DIR.path("app", "geolite2"))
+GEO_ZIP_PATH = f"{GEOIP_PATH}/uszips_states.csv"
+
+#########################
+# Rest Framework Settings
+#########################
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -195,10 +204,19 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = True
-GEOIP_PATH = str(APP_DIR.path("app", "geolite2"))
-GEO_ZIP_PATH = f"{GEOIP_PATH}/uszips_states.csv"
+################
+# Authentication
+################
+
+AUTH_USER_MODEL = "users.User"
+AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,
+}
+
+
 ################
 # Email sending
 ################
