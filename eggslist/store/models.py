@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
 
 from eggslist.store import constants
 from eggslist.store.managers import ProductArticlManager
@@ -8,7 +10,12 @@ from eggslist.utils.models import NameSlugModel, TitleSlugModel
 
 
 class Category(NameSlugModel):
-    image = models.ImageField(verbose_name=_("image"))
+    image = ProcessedImageField(
+        upload_to="categories",
+        processors=[ResizeToFill(300, 140)],
+        format="JPEG",
+        options={"quality": 70},
+    )
 
     class Meta:
         verbose_name = _("category")
@@ -38,7 +45,12 @@ class ProductArticle(TitleSlugModel):
     subcategory = models.ForeignKey(
         verbose_name=_("subcategory"), to="Subcategory", on_delete=models.CASCADE
     )
-    image = models.ImageField(verbose_name=_("image"), null=True, blank=True)
+    image = ProcessedImageField(
+        upload_to="product_articles",
+        processors=[ResizeToFill(500, 500)],
+        format="JPEG",
+        options={"quality": 75},
+    )
     price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2)
     date_created = models.DateTimeField(verbose_name=_("date created"), auto_now_add=True)
     allow_pickup = models.BooleanField(verbose_name=_("allow pickup"), default=True)

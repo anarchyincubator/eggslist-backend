@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     "solo.apps.SoloAppConfig",
     "phonenumber_field",
     "storages",
+    "imagekit",
     # project applications
     "eggslist.users",
     "eggslist.site_configuration",
