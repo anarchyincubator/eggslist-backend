@@ -2,7 +2,7 @@ import typing as t
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -71,12 +71,31 @@ class SignOutAPIView(APIView):
         return Response(status=200)
 
 
-class UserProfileAPIView(RetrieveAPIView):
+class UserProfileAPIView(RetrieveUpdateAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
+
+
+class UserProfileLocationAPIView(GenericAPIView):
+    """
+    Do not mix up this method with Set Location API method. This method is responsible for
+    a user profile location information. This location is stored in database and necessary for
+    sellers to show where their goods are.
+    """
+
+    serializer_class = serializers.SetUserZipCodeSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request: "HttpRequest", *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        User.objects.update_location(
+            email=request.user.email, zip_code_slug=serializer.validated_data["zip_code"]
+        )
+        return Response(status=200)
 
 
 class PasswordChangeAPIView(GenericAPIView):
