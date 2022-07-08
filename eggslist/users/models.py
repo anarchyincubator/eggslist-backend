@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
+from eggslist.site_configuration.models import LocationZipCode
 from eggslist.users.user_location_storage import UserLocationStorage
 
 if t.TYPE_CHECKING:
@@ -31,6 +32,10 @@ class EggslistUserManager(UserManager):
 
     def verify_email(self, email: str):
         self.filter(email=email).update(is_email_verified=True)
+
+    def update_location(self, email: str, zip_code_slug: str):
+        zip_code = LocationZipCode.objects.get(slug=zip_code_slug)
+        self.filter(email=email).update(zip_code=zip_code)
 
 
 class User(AbstractUser):

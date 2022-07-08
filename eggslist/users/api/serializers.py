@@ -78,21 +78,28 @@ class EmailVerifyConfirmSerializer(serializers.Serializer):
 
 
 class UserLocationSerializer(serializers.ModelSerializer):
-    city = serializers.CharField(source="name")
-    state = serializers.CharField(source="state.name")
-    country = serializers.CharField(source="state.country.name")
+    zip_code = serializers.CharField(source="name")
+    city = serializers.CharField(source="city.name")
+    state = serializers.CharField(source="city.state.name")
+    country = serializers.CharField(source="city.state.country.name")
 
     class Meta:
         model = LocationCity
-        fields = ("city", "state", "country")
+        fields = ("zip_code", "city", "state", "country")
 
 
 class SetLocationSerializer(serializers.Serializer):
     slug = serializers.CharField(help_text=_("Slug of a city location object"))
 
 
+class SetUserZipCodeSerializer(serializers.Serializer):
+    zip_code = serializers.CharField(help_text=_("Slug of a zip code location object"))
+
+
 class UserSerializer(serializers.ModelSerializer):
-    user_location = UserLocationSerializer(required=False, read_only=True)
+    user_location = UserLocationSerializer(required=False, read_only=True, source="zip_code")
+    is_email_verified = serializers.BooleanField(read_only=True)
+    is_verified_seller = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
