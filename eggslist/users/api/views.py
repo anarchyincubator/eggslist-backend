@@ -188,9 +188,8 @@ class EmailVerifyConfirmAPIView(GenericAPIView):
 class LocationAPIView(RetrieveAPIView):
     """
     Location Retrieve API View. Return current user's location
-    if backend application was not able to locate the user.
-    This can happend if the one uses VPN, or using the website
-    from outside of the US.
+    Client gets empty response if backend application was not able to locate the user.
+    This can happend if the one uses VPN, or using the website from outside of the US.
     """
 
     serializer_class = serializers.UserLocationSerializer
@@ -209,6 +208,10 @@ class LocationAPIView(RetrieveAPIView):
         return user_city_location
 
     def retrieve(self, request, *args, **kwargs):
+        # This should be removed as it is designed only for dev purposes
+        if request.query_params.get("r"):
+            return Response(data={"city": "Boston", "state": "MA", "country": "United States"})
+
         instance = self.get_object()
         if instance is None:
             return Response()
