@@ -205,20 +205,24 @@ class LocationAPIView(RetrieveAPIView):
         )
         user_city_location = locate_ip(ip_address)
 
+        # This should be removed as it is designed only for dev purposes
+        if self.request.query_params.get("r"):
+            return LocationCity.objects.get(slug="boston")
+
         return user_city_location
 
     def retrieve(self, request, *args, **kwargs):
-        # This should be removed as it is designed only for dev purposes
-        if request.query_params.get("r"):
-            return Response(data={"city": "Boston", "state": "MA", "country": "United States"})
-
         instance = self.get_object()
         if instance is None:
             return Response()
 
         serializer = self.get_serializer(instance)
         response = Response(serializer.data)
-        response.set_cookie(constants.USER_LOCATION_COOKIE_NAME, value=instance.slug)
+        response.set_cookie(
+            constants.USER_LOCATION_COOKIE_NAME,
+            value=instance.slug,
+            max_age=constants.USER_LOCATION_COOKIE_AGE,
+        )
         return response
 
 
