@@ -78,14 +78,13 @@ class EmailVerifyConfirmSerializer(serializers.Serializer):
 
 
 class UserLocationSerializer(serializers.ModelSerializer):
-    zip_code = serializers.CharField(source="name")
-    city = serializers.CharField(source="city.name")
-    state = serializers.CharField(source="city.state.name")
-    country = serializers.CharField(source="city.state.country.name")
+    city = serializers.CharField(source="name")
+    state = serializers.CharField(source="state.name")
+    country = serializers.CharField(source="state.country.name")
 
     class Meta:
         model = LocationCity
-        fields = ("zip_code", "city", "state", "country")
+        fields = ("city", "state", "country")
 
 
 class SetLocationSerializer(serializers.Serializer):
