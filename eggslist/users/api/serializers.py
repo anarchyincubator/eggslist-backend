@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from eggslist.site_configuration.models import LocationCity
+from eggslist.site_configuration.models import LocationCity, LocationZipCode
 from eggslist.users.api import messages
 
 User = get_user_model()
@@ -87,6 +87,16 @@ class UserLocationSerializer(serializers.ModelSerializer):
         fields = ("city", "state", "country")
 
 
+class UserZipCodeLocationSerializer(serializers.ModelSerializer):
+    zip_code = serializers.CharField(source="name")
+    city = serializers.CharField(source="city.name")
+    state = serializers.CharField(source="city.state.name")
+
+    class Meta:
+        model = LocationZipCode
+        fields = ("zip_code", "city", "state")
+
+
 class SetLocationSerializer(serializers.Serializer):
     slug = serializers.CharField(help_text=_("Slug of a city location object"))
 
@@ -96,7 +106,9 @@ class SetUserZipCodeSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    user_location = UserLocationSerializer(required=False, read_only=True, source="zip_code")
+    user_location = UserZipCodeLocationSerializer(
+        required=False, read_only=True, source="zip_code"
+    )
     is_email_verified = serializers.BooleanField(read_only=True)
     is_verified_seller = serializers.BooleanField(read_only=True)
 
