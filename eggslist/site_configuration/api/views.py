@@ -16,7 +16,8 @@ class LocationStateListAPIView(CacheListAPIMixin, generics.ListAPIView):
 class LocationCityListAPIView(CacheListAPIMixin, generics.ListAPIView):
     cache_key = "location_cities"
     serializer_class = serializers.CityLocationSerializer
-    queryset = models.LocationCity.objects.select_related("state__country").all()
+    # queryset = models.LocationCity.objects.select_related("state__country").all()
+    queryset = models.LocationCity.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ("name", "state__name", "state__country__name")
     filterset_class = filters.LocationCityFilter
@@ -24,6 +25,7 @@ class LocationCityListAPIView(CacheListAPIMixin, generics.ListAPIView):
 
 class LocationZipCodeListAPIView(generics.ListAPIView):
     serializer_class = serializers.ZipCodeLocationSerializer
-    queryset = models.LocationZipCode.objects.select_related("city__state__country").all()
+    # queryset = models.LocationZipCode.objects.select_related("city__state__country").all()
+    queryset = models.LocationZipCode.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = filters.LocationZipCodeFilter

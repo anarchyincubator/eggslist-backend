@@ -1,3 +1,5 @@
+import typing as t
+
 from django.db.models import F, Manager, QuerySet
 
 
@@ -11,6 +13,12 @@ class ProductArticlManager(Manager):
 
     def get_all_prefetched(self) -> QuerySet:
         return self.all().select_related("seller", "subcategory", "seller__zip_code__city__state")
+
+    def get_all_prefetched_for_city(self, city: t.Optional["LocationCity"]) -> QuerySet:
+        if city is None:
+            return self.get_all_prefetched()
+
+        return self.get_all_prefetched().filter(seller__zip_code__city=city)
 
     def get_best_similar_for(self, instance) -> QuerySet:
         qs = (

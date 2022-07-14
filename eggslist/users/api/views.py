@@ -11,7 +11,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users.determine_location import locate_ip
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
-from . import constants, messages, serializers
+from eggslist.users.user_location_storage import UserLocationStorage
+from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
+from . import messages, serializers
 
 if t.TYPE_CHECKING:
     from django.http.request import HttpRequest
@@ -185,7 +187,7 @@ class EmailVerifyConfirmAPIView(GenericAPIView):
         return Response(status=200)
 
 
-class LocationAPIView(RetrieveAPIView):
+class LocationAPIView(AnonymousUserIdAPIMixin, RetrieveAPIView):
     """
     Location Retrieve API View. Return current user's location
     Client gets empty response if backend application was not able to locate the user.
@@ -194,12 +196,12 @@ class LocationAPIView(RetrieveAPIView):
 
     serializer_class = serializers.UserLocationSerializer
 
-    def get_object(self):
-        user_city_location_slug = self.request.COOKIES.get(constants.USER_LOCATION_COOKIE_NAME)
-        if user_city_location_slug is not None:
-            return LocationCity.objects.select_related("state__country").get(
-                slug=user_city_location_slug
-            )
+    def get_location_instance(self):
+        user_city_location = UserLocationStorage.get_user_location(user_id=self.get_user_id())
+
+        if user_city_location is not None:
+            return user_city_location
+
         ip_address = self.request.META.get(
             "HTTP_X_FORWARDED_FOR", self.request.META.get("REMOTE_ADDR", "")
         )
@@ -212,21 +214,22 @@ class LocationAPIView(RetrieveAPIView):
         return user_city_location
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance is None:
+        location_instance = self.get_location_instance()
+
+        if location_instance is None:
             return Response()
 
-        serializer = self.get_serializer(instance)
+        serializer = self.get_serializer(location_instance)
         response = Response(serializer.data)
-        response.set_cookie(
-            constants.USER_LOCATION_COOKIE_NAME,
-            value=instance.slug,
-            max_age=constants.USER_LOCATION_COOKIE_AGE,
+
+        UserLocationStorage.set_user_location(
+            user_id=self.get_user_id(), city_location=location_instance
         )
+
         return response
 
 
-class SetLocationAPIView(GenericAPIView):
+class SetLocationAPIView(AnonymousUserIdAPIMixin, GenericAPIView):
     """
     Set a location for the user when user explicitly provided it
     """
@@ -237,6 +240,7 @@ class SetLocationAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         city_location_instance = LocationCity.objects.get(slug=serializer.validated_data["slug"])
-        response = Response()
-        response.set_cookie(constants.USER_LOCATION_COOKIE_NAME, city_location_instance.slug)
-        return response
+        UserLocationStorage.set_user_location(
+            user_id=self.get_user_id(), city_location=city_location_instance
+        )
+        return Response()

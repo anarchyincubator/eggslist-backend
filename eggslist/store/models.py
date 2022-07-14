@@ -78,3 +78,4 @@ class ProductArticle(TitleSlugModel):
     class Meta:
         verbose_name = _("product article")
         verbose_name_plural = _("product articles")
+        ordering = ("-engagement_count",)

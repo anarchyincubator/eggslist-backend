@@ -8,7 +8,8 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
-from eggslist.utils.views.mixins import CacheListAPIMixin
+from eggslist.users.user_location_storage import UserLocationStorage
+from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMixin
 
 
 class CategoryListAPIView(CacheListAPIMixin, generics.ListAPIView):
@@ -21,14 +22,26 @@ class ProductPagination(PageNumberPagination):
     page_size = 9
 
 
-class ProductArticleListAPIView(generics.ListAPIView):
+class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     serializer_class = serializers.ProductArticleSerializerSmall
-    queryset = models.ProductArticle.objects.get_all_prefetched()
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_class = ProductFilter
     search_fields = ("title", "description")
     ordering_fields = ("price", "date_created")
     pagination_class = ProductPagination
+
+    def get_queryset(self):
+        location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
+        return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)
+
+
+class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
+    serializer_class = serializers.ProductArticleSerializerSmall
+    pagination_class = ProductPagination
+
+    def get_queryset(self):
+        location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
+        return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)[:8]
 
 
 class ProductArticleCreateAPIView(generics.CreateAPIView):
