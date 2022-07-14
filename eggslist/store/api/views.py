@@ -23,6 +23,13 @@ class ProductPagination(PageNumberPagination):
 
 
 class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
+    """
+    Get Product Articles. Use filters as query paramerters.
+    Find query parameters information below.
+    API method returns the query already filtered according to user location
+    if it is provided in Cookie Session
+    """
+
     serializer_class = serializers.ProductArticleSerializerSmall
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_class = ProductFilter
@@ -36,6 +43,10 @@ class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
 
 
 class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
+    """
+    Get Popular products near the user
+    """
+
     serializer_class = serializers.ProductArticleSerializerSmall
     pagination_class = ProductPagination
 
