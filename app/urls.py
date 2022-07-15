@@ -15,6 +15,10 @@ if settings.DEBUG:
     urlpatterns.append(
         path(
             "api/docs/",
-            include_docs_urls(title="Eggslist API", description=constants.API_DOCS_MESSAGE),
+            include_docs_urls(
+                title="Eggslist API",
+                description=constants.API_DOCS_MESSAGE,
+                schema_url="http://206.189.255.110",
+            ),
         )
     )

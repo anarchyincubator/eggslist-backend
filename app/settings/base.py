@@ -28,6 +28,11 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 SITE_ID = 1
 SITE_URL = "https://eggslist.com"
+CSRF_TRUSTED_ORIGINS = [
+    "https://eggslist.com",
+    "http://206.189.255.110",
+    "https://206.189.255.110",
+]
 
 INSTALLED_APPS = (
     # django package

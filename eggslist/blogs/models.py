@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 
+from eggslist.blogs.managers import BlogManager
 from eggslist.utils.models import NameSlugModel, TitleSlugModel
 
 
@@ -30,6 +31,8 @@ class BlogArticle(TitleSlugModel):
     )
     date_created = models.DateTimeField(verbose_name=_("date created"), auto_now_add=True)
     body = models.TextField(verbose_name=_("body"))
+
+    objects = BlogManager()
 
     class Meta:
         verbose_name = _("blog article")

@@ -85,9 +85,9 @@ jobs:
             cd /eggslist/github-deployer
             source .env
             docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker rm eggslist_backend --force
+            docker rm eggslist-backend --force
             docker rmi $WEB_IMAGE --force
             docker system prune --force
             docker pull $WEB_IMAGE
-            docker run --name eggslist_backend -p 8000:8000 -d $WEB_IMAGE
+            docker run --name eggslist-backend -p 8000:8000 -d $WEB_IMAGE
           ENDSSH
