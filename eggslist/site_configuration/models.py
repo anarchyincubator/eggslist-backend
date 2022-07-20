@@ -65,3 +65,27 @@ class LocationZipCode(NameSlugModel):
     class Meta:
         verbose_name = _("location zip code")
         verbose_name_plural = _("location zip codes")
+
+
+class Testimonial(models.Model):
+    author_name = models.CharField(verbose_name=_("author name"), max_length=32)
+    body = models.TextField(verbose_name=_("body"))
+
+    class Meta:
+        verbose_name = _("testimonial")
+        verbose_name_plural = _("testimonials")
+
+    def __str__(self):
+        return f"{self.author_name} -- {self.body[:40]}..."
+
+
+class FAQ(models.Model):
+    question = models.CharField(verbose_name=_("question"), max_length=256)
+    answer = models.TextField(verbose_name=_("answer"))
+
+    class Meta:
+        verbose_name = "FAQ"
+        verbose_name_plural = "FAQs"
+
+    def __str__(self):
+        return self.question

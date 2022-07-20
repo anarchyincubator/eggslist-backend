@@ -28,3 +28,13 @@ class ZipCodeAdmin(admin.ModelAdmin):
     list_display = ("name", "city")
     list_select_related = ("city",)
     readonly_fields = ("slug",)
+
+
+@admin.register(models.Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ("author_name", "body")
+
+
+@admin.register(models.FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ("question", "answer")

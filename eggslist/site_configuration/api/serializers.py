@@ -27,3 +27,15 @@ class ZipCodeLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.LocationZipCode
         fields = ("slug", "name", "state", "city")
+
+
+class TestimonialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Testimonial
+        fields = ("author_name", "body")
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FAQ
+        fields = ("question", "answer")
