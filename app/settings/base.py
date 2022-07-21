@@ -32,6 +32,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://eggslist.com",
     "http://206.189.255.110",
     "https://206.189.255.110",
+    "https://eggslist-dev.ferialabs.com",
 ]
 
 INSTALLED_APPS = (

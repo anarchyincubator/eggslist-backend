@@ -13,6 +13,8 @@ from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMix
 
 
 class CategoryListAPIView(CacheListAPIMixin, generics.ListAPIView):
+    """Get Product Categories"""
+
     cache_key = "categories"
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all().prefetch_related("subcategories")

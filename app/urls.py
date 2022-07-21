@@ -18,7 +18,7 @@ if settings.DEBUG:
             include_docs_urls(
                 title="Eggslist API",
                 description=constants.API_DOCS_MESSAGE,
-                # schema_url="http://206.189.255.110",
+                schema_url="https://eggslist-dev.ferialabs.com/",
             ),
         )
     )

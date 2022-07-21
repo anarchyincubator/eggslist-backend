@@ -4,8 +4,6 @@ from django.db.models import F, Manager, QuerySet
 
 
 class ProductArticlManager(Manager):
-    BEST_SIMILAR_CACHE_KEY = "best_similar_for:{subcategory_slug}"
-
     def increase_engagement_count(self, slug: str):
         updted_number = self.filter(slug=slug).update(engagement_count=F("engagement_count") + 1)
         if updted_number == 0:
