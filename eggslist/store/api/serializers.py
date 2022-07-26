@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -33,9 +35,15 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class SellerSerializerSmall(serializers.ModelSerializer):
+    is_favorite = serializers.SerializerMethodField()
+
+    def get_is_favorite(self, obj):
+        # This is only for dev purposes. Remove it when implement fav farms
+        return bool(random.getrandbits(1))
+
     class Meta:
         model = User
-        fields = ("first_name", "last_name")
+        fields = ("first_name", "last_name", "is_verified_seller", "is_favorite")
 
 
 class SellerSerializer(serializers.ModelSerializer):

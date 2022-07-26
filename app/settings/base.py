@@ -28,6 +28,12 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 SITE_ID = 1
 SITE_URL = "https://eggslist.com"
+CSRF_TRUSTED_ORIGINS = [
+    "https://eggslist.com",
+    "http://206.189.255.110",
+    "https://206.189.255.110",
+    "https://eggslist-dev.ferialabs.com",
+]
 
 INSTALLED_APPS = (
     # django package
@@ -55,11 +61,12 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # "app.middleware.session.AnonymousIdSessionMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     # "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "app.middleware.authentication.AnonymousIdAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -209,8 +216,12 @@ REST_FRAMEWORK = {
 ################
 
 AUTH_USER_MODEL = "users.User"
+AUTH_ANONYMOUS_MODEL = "users.AnonymousUser"
 AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+ANONYMOUS_USER_ID_SESSION_KEY = "anonymous_id"
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,

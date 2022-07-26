@@ -1,6 +1,8 @@
 import typing as t
 
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AnonymousUser as DjangoAnonymousUser
+from django.contrib.auth.models import UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -37,6 +39,17 @@ class EggslistUserManager(UserManager):
         zip_code = LocationZipCode.objects.get(slug=zip_code_slug)
         self.filter(email=email).update(zip_code=zip_code)
 
+    def get_queryset(self):
+        return super().get_queryset().select_related("zip_code__city__state__country")
+
+
+class AnonymousUser(DjangoAnonymousUser):
+    def __init__(self, request):
+        request.session.create()
+        self.id = request.session.session_key
+        print("IAMINMYANON USER BLYA")
+        super().__init__()
+
 
 class User(AbstractUser):
     email = models.EmailField(verbose_name=_("email address"), unique=True)
@@ -57,11 +70,11 @@ class User(AbstractUser):
 
     @property
     def user_location(self) -> "LocationCity":
-        return UserLocationStorage.get_user_location(self)
+        return UserLocationStorage.get_user_location(self.id)
 
     @user_location.setter
     def user_location(self, value: "LocationCity"):
-        UserLocationStorage.set_user_location(self, city_location=value)
+        UserLocationStorage.set_user_location(self.id, city_location=value)
 
     class Meta:
         verbose_name = _("user")

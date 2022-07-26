@@ -4,6 +4,7 @@ on: [push]
 
 env:
   WEB_IMAGE: fedorgrab/eggslist_backend:latest
+  NGINX_IMAGE: fedorgrab/eggslist-nginx:latest
 
 jobs:
 
@@ -32,6 +33,7 @@ jobs:
           echo DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }} >> .env
           echo EMAIL_PORT=${{ secrets.EMAIL_PORT }} >> .env
           echo WEB_IMAGE=${{ secrets.WEB_IMAGE }} >> .env
+          echo NGINX_IMAGE=${{ secrets.NGINX_IMAGE }} >> .env
           echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
           echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
           echo DO_ACCESS_KEY_ID=${{ secrets.DO_ACCESS_KEY_ID  }} >> .env
@@ -40,6 +42,8 @@ jobs:
       - name: Set environment variables
         run: |
           echo "WEB_IMAGE=$(echo ${{env.WEB_IMAGE}} )" >> $GITHUB_ENV
+          echo "NGINX_IMAGE=$(echo ${{env.NGINX_IMAGE}} )" >> $GITHUB_ENV
+          echo "CERTBOT_EMAIL=$(echo ${{env.CERTBOT_EMAIL}} )" >> $GITHUB_ENV
 
       - name: Log in to GitHub Packages
         run: docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -48,12 +52,16 @@ jobs:
       - name: Pull images
         run: |
           docker pull ${{ env.WEB_IMAGE }} || true
+          docker pull ${{ env.NGINX_IMAGE }} || true
       - name: Build images
         run: |
-          docker build -f ./deploy/Dockerfile -t ${{ env.WEB_IMAGE }} .
+          docker build -f ./deploy/Dockerfile.backend -t ${{ env.WEB_IMAGE }} .
+          echo "FINISHED WEB IMAGE"
+          docker build -f ./deploy/Dockerfile.nginx -t ${{ env.NGINX_IMAGE }} .
       - name: Push images
         run: |
           docker push ${{ env.WEB_IMAGE }}
+          docker push ${{ env.NGINX_IMAGE }}
 
   deploy:
     name: Deploy to DigitalOcean
@@ -68,6 +76,7 @@ jobs:
           echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
           echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
           echo DIGITAL_OCEAN_TOKEN=${{ secrets.DIGITAL_OCEAN_TOKEN }} >> .env
+          echo CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} >> .env
       - name: Add the private SSH key to the ssh-agent
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
@@ -85,9 +94,13 @@ jobs:
             cd /eggslist/github-deployer
             source .env
             docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker rm eggslist_backend --force
+            docker rm eggslist-backend --force
+            docker rm eggslist-nginx --force
             docker rmi $WEB_IMAGE --force
+            docker rmi $NGINX_IMAGE --force
             docker system prune --force
             docker pull $WEB_IMAGE
-            docker run --name eggslist_backend -p 8000:8000 -d $WEB_IMAGE
+            docker pull $NGINX_IMAGE
+            docker run --name eggslist-backend -p 8000:8000 -d $WEB_IMAGE
+            docker run --name eggslist-nginx -p 443:443 -p 80:80 -e CERTBOT_EMAIL=$CERTBOT_EMAIL -v /eggslist/nginx/secrets:/etc/letsencrypt -d ${{ secrets.NGINX_IMAGE  }}
           ENDSSH

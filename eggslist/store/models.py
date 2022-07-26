@@ -50,6 +50,8 @@ class ProductArticle(TitleSlugModel):
         processors=[ResizeToFill(500, 500)],
         format="JPEG",
         options={"quality": 75},
+        null=True,
+        blank=True,
     )
     price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2)
     date_created = models.DateTimeField(verbose_name=_("date created"), auto_now_add=True)
@@ -78,3 +80,4 @@ class ProductArticle(TitleSlugModel):
     class Meta:
         verbose_name = _("product article")
         verbose_name_plural = _("product articles")
+        ordering = ("-engagement_count",)
