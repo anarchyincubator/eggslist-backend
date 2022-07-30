@@ -6,6 +6,7 @@ from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpd
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
@@ -57,8 +58,8 @@ class SignUpAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        login(request=request, user=user)
-        return Response(status=200)
+        token = RefreshToken.for_user(user)
+        return Response(status=200, data={"access": str(token.access_token)})
 
 
 class SignOutAPIView(APIView):
