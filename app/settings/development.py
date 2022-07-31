@@ -3,3 +3,4 @@ from .base import *  # noqa
 
 INSTALLED_APPS += ("corsheaders",)
 DEBUG = True
+SITE_URL = "https://eggslist-frontend.ferialabs.com"
