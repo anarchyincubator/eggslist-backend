@@ -12,7 +12,7 @@ from eggslist.site_configuration.models import LocationCity
 from eggslist.users.determine_location import locate_ip
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
-from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
+from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, JWTMixin
 from . import messages, serializers
 
 if t.TYPE_CHECKING:
@@ -22,6 +22,10 @@ User = get_user_model()
 
 
 class SignInAPIView(GenericAPIView):
+    """
+    Deprecated
+    """
+
     serializer_class = serializers.SignInSerializer
     permission_classes = (~IsAuthenticated,)
 
@@ -49,7 +53,7 @@ class JWTSignInAPIView(TokenObtainPairView):
         return response
 
 
-class SignUpAPIView(GenericAPIView):
+class SignUpAPIView(JWTMixin, GenericAPIView):
     serializer_class = serializers.SignUpSerializer
     permission_classes = (~IsAuthenticated,)
 
@@ -57,8 +61,8 @@ class SignUpAPIView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        login(request=request, user=user)
-        return Response(status=200)
+        token_data = self.get_token_data(user=user)
+        return Response(status=200, data=token_data)
 
 
 class SignOutAPIView(APIView):

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.cache import cache
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from eggslist.utils import constants
 
@@ -24,3 +25,9 @@ class AnonymousUserIdAPIMixin:
             return self.request.session[settings.ANONYMOUS_USER_ID_SESSION_KEY]
         else:
             return self.request.user.id
+
+
+class JWTMixin:
+    def get_token_data(self, user):
+        token = RefreshToken.for_user(user)
+        return {"access": str(token.access_token)}
