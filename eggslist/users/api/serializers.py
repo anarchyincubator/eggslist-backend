@@ -51,14 +51,15 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(
-        help_text=_("User needs to provide an email which will be " "used to get a reset code")
+        help_text=_("User needs to provide an email which will be used to get a reset code")
     )
 
     def validate_email(self, value: str) -> str:
+        value = value.lower()
         try:
-            User.objects.get(email=value)
+            User.objects.get(email__iexact=value)
         except User.DoesNotExist:
-            raise serializers.ValidationError({"email": messages.EMAIL_NOT_FOUND})
+            raise serializers.ValidationError(messages.EMAIL_NOT_FOUND)
         return value
 
 

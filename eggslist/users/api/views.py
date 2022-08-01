@@ -134,7 +134,7 @@ class PasswordResetRequest(GenericAPIView):
                 email=serializer.validated_data["email"]
             )
         except User.DoesNotExist:
-            raise ValidationError({"email": messages.EMAIL_NOT_FOUND})
+            raise ValidationError({"email": [messages.EMAIL_NOT_FOUND]})
         return Response(status=200)
 
 
