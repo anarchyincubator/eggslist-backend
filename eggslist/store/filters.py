@@ -2,6 +2,7 @@ import django_filters as filters
 from django import forms
 from django.conf import settings
 from django.db.utils import DatabaseError
+
 from eggslist.site_configuration.models import LocationZipCode
 from eggslist.store import models
 
@@ -36,12 +37,7 @@ class ProductFilter(filters.FilterSet):
         choices=subcategory_choices,
         help_text="Subcategory's slug which user wants to get. Can be used multiple times \n e.g '.?subcategory=chicken-eggs&subcategory=goose-eggs'.",
     )
-    zip_code = NonValidatingMultipleChoiceFilter(
-        choices=zip_code_choices,
-        help_text="zip_code to filter by",
-        field_name="seller__zip_code__name",
-    )
 
     class Meta:
         model = models.ProductArticle
-        fields = ("subcategory", "zip_code", "allow_pickup", "allow_delivery")
+        fields = ("subcategory", "allow_pickup", "allow_delivery")
