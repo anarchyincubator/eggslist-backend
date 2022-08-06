@@ -1,7 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -10,6 +9,7 @@ from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
 from eggslist.users.user_location_storage import UserLocationStorage
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMixin
+from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
 
 class CategoryListAPIView(CacheListAPIMixin, generics.ListAPIView):
@@ -18,10 +18,6 @@ class CategoryListAPIView(CacheListAPIMixin, generics.ListAPIView):
     cache_key = "categories"
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all().prefetch_related("subcategories")
-
-
-class ProductPagination(PageNumberPagination):
-    page_size = 9
 
 
 class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
@@ -37,7 +33,7 @@ class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     filterset_class = ProductFilter
     search_fields = ("title", "description")
     ordering_fields = ("price", "date_created")
-    pagination_class = ProductPagination
+    pagination_class = PageNumberPaginationWithCount
 
     def get_queryset(self):
         location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
@@ -50,7 +46,7 @@ class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmall
-    pagination_class = ProductPagination
+    pagination_class = PageNumberPaginationWithCount
 
     def get_queryset(self):
         location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
