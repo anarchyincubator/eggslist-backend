@@ -85,7 +85,7 @@ class UserLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocationCity
-        fields = ("city", "state", "country")
+        fields = ("slug", "city", "state", "country")
 
 
 class UserZipCodeLocationSerializer(serializers.ModelSerializer):
