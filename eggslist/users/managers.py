@@ -11,8 +11,8 @@ from eggslist.site_configuration.models import LocationZipCode
 class EggslistUserManager(UserManager):
     def _create_user(self, username=None, email=None, password=None, **extra_fields):
         email = self.normalize_email(email)
-        if email is None or password is None:
-            raise ValueError("`email` and `password` are required fields to create the user")
+        if email is None:
+            raise ValueError("`email` is required field to create the user")
         if username is None:
             username = secrets.token_hex(9)
 
