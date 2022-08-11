@@ -2,7 +2,7 @@ from rest_framework import pagination
 
 
 class PageNumberPaginationWithCount(pagination.PageNumberPagination):
-    page_size = 9
+    page_size = 12
 
     def get_paginated_response(self, data):
         response = super(PageNumberPaginationWithCount, self).get_paginated_response(data)
