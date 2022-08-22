@@ -51,7 +51,14 @@ class SellerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "phone_number", "is_verified_seller", "location")
+        fields = (
+            "first_name",
+            "last_name",
+            "avatar",
+            "phone_number",
+            "is_verified_seller",
+            "location",
+        )
 
 
 class ProductArticleSerializerSmall(serializers.ModelSerializer):

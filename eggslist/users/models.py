@@ -5,6 +5,8 @@ from django.contrib.auth.models import AnonymousUser as DjangoAnonymousUser
 from django.contrib.auth.models import UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
 from phonenumber_field.modelfields import PhoneNumberField
 
 from eggslist.site_configuration.models import LocationZipCode
@@ -55,7 +57,14 @@ class User(AbstractUser):
     email = models.EmailField(verbose_name=_("email address"), unique=True)
     is_email_verified = models.BooleanField(verbose_name=_("is email verified"), default=False)
     phone_number = PhoneNumberField(verbose_name=_("phone number"), null=True, blank=True)
-    avatar = models.ImageField(verbose_name=_("avatar"), null=True, blank=True)
+    avatar = ProcessedImageField(
+        verbose_name=_("avatar"),
+        upload_to="categories",
+        processors=[ResizeToFill(124, 124)],
+        format="JPEG",
+        options={"quality": 70},
+    )
+
     is_verified_seller = models.BooleanField(verbose_name=_("is verified seller"), default=False)
     bio = models.CharField(verbose_name=_("bio"), max_length=1024, null=True, blank=True)
     # Location
