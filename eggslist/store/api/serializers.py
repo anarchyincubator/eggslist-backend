@@ -62,13 +62,21 @@ class SellerSerializer(serializers.ModelSerializer):
 
 
 class ProductArticleSerializerSmall(serializers.ModelSerializer):
-    seller = SellerSerializerSmall(read_only=True)
     slug = serializers.CharField(read_only=True)
+    seller = SellerSerializerSmall(read_only=True)
     price = serializers.DecimalField(max_digits=8, decimal_places=2)
 
     class Meta:
         model = models.ProductArticle
         fields = ("title", "image", "slug", "price", "seller")
+
+
+class ProductArticleSerializerSmallMy(serializers.ModelSerializer):
+    seller = SellerSerializerSmall(read_only=True)
+
+    class Meta:
+        model = models.ProductArticle
+        fields = ("title", "image", "slug", "price", "seller", "seller_status")
 
 
 class ProductArticleSerializer(serializers.ModelSerializer):

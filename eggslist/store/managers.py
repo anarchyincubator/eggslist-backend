@@ -2,6 +2,8 @@ import typing as t
 
 from django.db.models import F, Manager, QuerySet
 
+from eggslist.store import constants
+
 
 class ProductArticlManager(Manager):
     def increase_engagement_count(self, slug: str):
@@ -31,4 +33,19 @@ class ProductArticlManager(Manager):
             self.exclude(slug=instance.slug)
             .filter(seller=instance.seller)
             .select_related("seller", "subcategory")[:4]
+        )
+
+    def get_for(self, user):
+        return (
+            self.get_all_prefetched().filter(seller=user).exclude(seller_status=constants.HIDDEN)
+        )
+
+    def get_hidden_for(self, user):
+        return self.get_all_prefetched().filter(seller=user, seller_status=constants.HIDDEN)
+
+    def get_recently_viewed_for(self, user):
+        return (
+            self.get_all_prefetched()
+            .filter(user_view_timestamps__user=user)
+            .order_by("-user_view_timestamps__timestamp")
         )

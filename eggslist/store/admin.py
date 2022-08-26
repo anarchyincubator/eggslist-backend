@@ -34,3 +34,8 @@ class ProductArticleAdmin(ImageAdmin):
     list_display_images = ("image",)
     list_select_related = ("seller", "subcategory")
     readonly_fields = ("engagement_count", "date_created", "slug")
+
+
+@admin.register(models.UserViewTimestamp)
+class ProductUserView(admin.ModelAdmin):
+    list_display = ("user", "timestamp", "product")

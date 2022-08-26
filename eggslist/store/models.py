@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
@@ -81,3 +82,28 @@ class ProductArticle(TitleSlugModel):
         verbose_name = _("product article")
         verbose_name_plural = _("product articles")
         ordering = ("-engagement_count",)
+
+    def user_viewed(self, user):
+        UserViewTimestamp.objects.update_or_create(
+            user=user, product=self, defaults={"timestamp": now()}
+        )
+
+
+class UserViewTimestamp(models.Model):
+    timestamp = models.DateTimeField(verbose_name=_("timestamp"), auto_now=True)
+    user = models.ForeignKey(
+        verbose_name=_("user"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="user_view_timestamps",
+    )
+    product = models.ForeignKey(
+        verbose_name=_("product"),
+        to="ProductArticle",
+        on_delete=models.CASCADE,
+        related_name="user_view_timestamps",
+    )
+
+    class Meta:
+        verbose_name = _("user view timestamp")
+        verbose_name_plural = _("user view timestamps")

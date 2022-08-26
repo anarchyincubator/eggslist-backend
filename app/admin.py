@@ -12,6 +12,7 @@ class EggslistAdminSite(admin.AdminSite):
             "ProductArticle": 1,
             "Category": 2,
             "Subcategory": 3,
+            "UserViewTimestamp": 4,
             "BlogArticle": 1,
             "BlogCategory": 2,
             "User": 1,

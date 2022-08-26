@@ -7,5 +7,11 @@ DELIVERY_OPTIONS = ((DELIVERY, "delivery"), (PICKUP, "pick up"))
 
 ARCHIVED = "archived"
 OUT_OF_STOCK = "out_of_stock"
+HIDDEN = "hidden"
 ACTIVE = "active"
-SELLER_STATUS = ((ARCHIVED, "archived"), (OUT_OF_STOCK, "out of stock"), (ACTIVE, "active"))
+SELLER_STATUS = (
+    (ARCHIVED, "archived"),
+    (OUT_OF_STOCK, "out of stock"),
+    (ACTIVE, "active"),
+    (HIDDEN, "hidden"),
+)

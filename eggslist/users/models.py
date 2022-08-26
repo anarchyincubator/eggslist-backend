@@ -60,6 +60,7 @@ class User(AbstractUser):
     avatar = ProcessedImageField(
         verbose_name=_("avatar"),
         upload_to="categories",
+        null=True,
         processors=[ResizeToFill(124, 124)],
         format="JPEG",
         options={"quality": 70},

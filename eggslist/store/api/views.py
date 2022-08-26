@@ -53,6 +53,45 @@ class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
         return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)[:8]
 
 
+class RecentlyViewedArticleListAPIView(generics.ListAPIView):
+    """
+    Get recently viewed articles by a current logged user
+    """
+
+    serializer_class = serializers.ProductArticleSerializerSmallMy
+    pagination_class = PageNumberPaginationWithCount
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return models.ProductArticle.objects.get_recently_viewed_for(user=self.request.user)
+
+
+class MyProductArticlesListAPIView(generics.ListAPIView):
+    """
+    Get products owned by current user excluding hidden
+    """
+
+    serializer_class = serializers.ProductArticleSerializerSmallMy
+    pagination_class = PageNumberPaginationWithCount
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return models.ProductArticle.objects.get_for(self.request.user)
+
+
+class MyHiddenProductArticlesListAPIView(generics.ListAPIView):
+    """
+    Get hidden products owned by a current user
+    """
+
+    serializer_class = serializers.ProductArticleSerializerSmallMy
+    pagination_class = PageNumberPaginationWithCount
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return models.ProductArticle.objects.get_hidden_for(user=self.request.user)
+
+
 class ProductArticleCreateAPIView(generics.CreateAPIView):
     serializer_class = serializers.ProductArticleSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -77,6 +116,19 @@ class ProductArticleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         self.permit_operation(serializer.instance)
         return super().perform_update(serializer)
+
+    def user_viewed(self, product):
+        user = self.request.user
+        if not user.is_authenticated:
+            return
+
+        product.user_viewed(user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        self.user_viewed(product=instance)
+        return Response(serializer.data)
 
 
 class ProductArticleContactButtonAPIView(APIView):
