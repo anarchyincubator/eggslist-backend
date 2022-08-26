@@ -122,6 +122,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "is_email_verified",
             "is_verified_seller",
+            "date_joined",
             "avatar",
             "bio",
         )
