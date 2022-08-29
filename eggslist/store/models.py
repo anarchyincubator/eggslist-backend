@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 
-from eggslist.store import constants
 from eggslist.store.managers import ProductArticlManager
 from eggslist.utils.models import NameSlugModel, TitleSlugModel
 
@@ -65,12 +64,8 @@ class ProductArticle(TitleSlugModel):
         on_delete=models.CASCADE,
     )
     is_banned = models.BooleanField(verbose_name=_("is banned"), default=False)
-    seller_status = models.CharField(
-        verbose_name=_("seller status"),
-        max_length=32,
-        choices=constants.SELLER_STATUS,
-        default=constants.ACTIVE,
-    )
+    is_hidden = models.BooleanField(verbose_name=_("is hidden"), default=False)
+    is_out_of_stock = models.BooleanField(verbose_name=_("is out of stock"), default=False)
     engagement_count = models.PositiveIntegerField(
         verbose_name=_("engagement count"),
         help_text=_("Nubmer of clicks on `Contact` button in the product page"),

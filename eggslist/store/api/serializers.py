@@ -76,7 +76,7 @@ class ProductArticleSerializerSmallMy(serializers.ModelSerializer):
 
     class Meta:
         model = models.ProductArticle
-        fields = ("title", "image", "slug", "price", "seller", "seller_status")
+        fields = ("title", "image", "slug", "price", "seller", "is_hidden", "is_out_of_stock")
 
 
 class ProductArticleSerializer(serializers.ModelSerializer):
