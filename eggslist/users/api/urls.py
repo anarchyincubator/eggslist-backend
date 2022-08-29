@@ -18,5 +18,6 @@ urlpatterns = [
     path("email-verify-confirm", views.EmailVerifyConfirmAPIView.as_view(), name="email-verify-confirm"),
     path("locate", views.LocationAPIView.as_view(), name="locate"),
     path("set-location", views.SetLocationAPIView.as_view(), name="set-location"),
+    path("become-verified-seller", views.BecomeVerifiedSellerAPIView.as_view(), name="become-verified-seller"),
 ]
 # fmt: on

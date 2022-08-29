@@ -2,10 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from .models import User
+from eggslist.users import models
+from eggslist.utils.admin import ImageAdmin
 
 
-@admin.register(User)
+@admin.register(models.User)
 class UserAdmin(DjangoUserAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
@@ -32,3 +33,10 @@ class UserAdmin(DjangoUserAdmin):
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
     list_display = DjangoUserAdmin.list_display
+
+
+@admin.register(models.VerifiedSellerApplication)
+class VerifiedSellerApplicationAdmin(ImageAdmin):
+    list_display = ("user",)
+    list_display_images = ("image",)
+    readonly_fields = ("is_approved",)

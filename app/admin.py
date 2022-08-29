@@ -16,6 +16,7 @@ class EggslistAdminSite(admin.AdminSite):
             "BlogArticle": 1,
             "BlogCategory": 2,
             "User": 1,
+            "VerifiedSellerApplication": 2,
             "LocationCountry": 1,
             "LocationState": 2,
             "LocationCity": 3,

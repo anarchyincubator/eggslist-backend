@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from eggslist.site_configuration.models import LocationCity, LocationZipCode
+from eggslist.users import models
 from eggslist.users.api import messages
 
 User = get_user_model()
@@ -126,3 +127,9 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar",
             "bio",
         )
+
+
+class VerifiedSellerApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.VerifiedSellerApplication
+        fields = ("image", "text")

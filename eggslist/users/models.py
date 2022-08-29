@@ -1,5 +1,6 @@
 import typing as t
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import AnonymousUser as DjangoAnonymousUser
 from django.contrib.auth.models import UserManager
@@ -49,7 +50,6 @@ class AnonymousUser(DjangoAnonymousUser):
     def __init__(self, request):
         request.session.create()
         self.id = request.session.session_key
-        print("IAMINMYANON USER BLYA")
         super().__init__()
 
 
@@ -59,8 +59,9 @@ class User(AbstractUser):
     phone_number = PhoneNumberField(verbose_name=_("phone number"), null=True, blank=True)
     avatar = ProcessedImageField(
         verbose_name=_("avatar"),
-        upload_to="categories",
+        upload_to="avatars",
         null=True,
+        blank=True,
         processors=[ResizeToFill(124, 124)],
         format="JPEG",
         options={"quality": 70},
@@ -89,3 +90,22 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+
+
+class VerifiedSellerApplication(models.Model):
+    user = models.ForeignKey(
+        verbose_name=_("user"), to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
+    image = ProcessedImageField(
+        verbose_name=_("image"),
+        upload_to="seller_verifications",
+        null=True,
+        format="JPEG",
+        options={"quality": 70},
+    )
+    text = models.TextField(verbose_name=_("text"))
+    is_approved = models.BooleanField(verbose_name=_("is_approved"), default=False)
+
+    class Meta:
+        verbose_name = _("verified seller application")
+        verbose_name_plural = _("verified seller application")

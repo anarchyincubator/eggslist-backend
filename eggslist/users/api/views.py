@@ -2,13 +2,19 @@ import typing as t
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import GenericAPIView, RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    GenericAPIView,
+    RetrieveAPIView,
+    RetrieveUpdateAPIView,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
+from eggslist.users import models
 from eggslist.users.determine_location import locate_ip
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
@@ -248,3 +254,11 @@ class SetLocationAPIView(AnonymousUserIdAPIMixin, GenericAPIView):
             user_id=self.get_user_id(), city_location=city_location_instance
         )
         return Response()
+
+
+class BecomeVerifiedSellerAPIView(CreateAPIView):
+    serializer_class = serializers.VerifiedSellerApplicationSerializer
+    queryset = models.VerifiedSellerApplication
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
