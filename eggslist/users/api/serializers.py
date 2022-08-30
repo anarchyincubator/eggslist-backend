@@ -117,11 +117,32 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            "id",
             "first_name",
             "last_name",
             "user_location",
             "email",
             "is_email_verified",
+            "is_verified_seller",
+            "date_joined",
+            "avatar",
+            "bio",
+        )
+
+
+class OtherUserSerializer(serializers.ModelSerializer):
+    user_location = UserZipCodeLocationSerializer(
+        required=False, read_only=True, source="zip_code"
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "user_location",
+            "email",
             "is_verified_seller",
             "date_joined",
             "avatar",

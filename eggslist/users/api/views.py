@@ -91,6 +91,11 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
         return self.request.user
 
 
+class OtherUserProfileAPIView(RetrieveAPIView):
+    serializer_class = serializers.OtherUserSerializer
+    queryset = User.objects.all()
+
+
 class UserProfileLocationAPIView(GenericAPIView):
     """
     Do not mix up this method with Set Location API method. This method is responsible for

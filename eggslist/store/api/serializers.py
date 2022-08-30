@@ -43,7 +43,7 @@ class SellerSerializerSmall(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "is_verified_seller", "is_favorite")
+        fields = ("id", "first_name", "last_name", "is_verified_seller", "is_favorite")
 
 
 class SellerSerializer(serializers.ModelSerializer):
@@ -52,6 +52,7 @@ class SellerSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            "id",
             "first_name",
             "last_name",
             "avatar",
