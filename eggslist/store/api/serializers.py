@@ -103,7 +103,6 @@ class ProductArticleSerializer(serializers.ModelSerializer):
             "price",
             "seller",
             "is_banned",
-            "seller_status",
             "you_may_also_like",
             "more_from_this_farm",
         )
