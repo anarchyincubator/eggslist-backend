@@ -125,6 +125,7 @@ class UserSerializer(serializers.ModelSerializer):
             "is_email_verified",
             "is_verified_seller",
             "date_joined",
+            "phone_number",
             "avatar",
             "bio",
         )
@@ -145,6 +146,7 @@ class OtherUserSerializer(serializers.ModelSerializer):
             "email",
             "is_verified_seller",
             "date_joined",
+            "phone_number",
             "avatar",
             "bio",
         )
