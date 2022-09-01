@@ -88,6 +88,8 @@ class ProductArticleSerializer(serializers.ModelSerializer):
     subcategory = serializers.SlugRelatedField(
         slug_field="name", queryset=models.Subcategory.objects.all()
     )
+    is_hidden = serializers.BooleanField(write_only=True)
+    is_out_of_stock = serializers.BooleanField(write_only=True)
     you_may_also_like = serializers.SerializerMethodField()
     more_from_this_farm = serializers.SerializerMethodField()
 
@@ -104,6 +106,8 @@ class ProductArticleSerializer(serializers.ModelSerializer):
             "price",
             "seller",
             "is_banned",
+            "is_hidden",
+            "is_out_of_stock",
             "you_may_also_like",
             "more_from_this_farm",
         )
