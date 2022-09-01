@@ -53,13 +53,17 @@ class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
         return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)[:8]
 
 
+class ProfileProductPagination(PageNumberPaginationWithCount):
+    page_size = 8
+
+
 class RecentlyViewedArticleListAPIView(generics.ListAPIView):
     """
     Get recently viewed articles by a current logged user
     """
 
     serializer_class = serializers.ProductArticleSerializerSmallMy
-    pagination_class = PageNumberPaginationWithCount
+    pagination_class = ProfileProductPagination
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
@@ -72,7 +76,7 @@ class MyProductArticlesListAPIView(generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmallMy
-    pagination_class = PageNumberPaginationWithCount
+    pagination_class = ProfileProductPagination
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
@@ -85,11 +89,24 @@ class MyHiddenProductArticlesListAPIView(generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmallMy
-    pagination_class = PageNumberPaginationWithCount
+    pagination_class = ProfileProductPagination
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
         return models.ProductArticle.objects.get_hidden_for(user=self.request.user)
+
+
+class OtherUserProductArticleListAPIView(generics.ListAPIView):
+    """
+    Get list of articles belonging to other users
+    """
+
+    serializer_class = serializers.ProductArticleSerializerSmall
+    lookup_field = "seller_id"
+    pagination_class = ProfileProductPagination
+
+    def get_queryset(self):
+        return models.ProductArticle.objects.get_for(self.kwargs[self.lookup_field])
 
 
 class ProductArticleCreateAPIView(generics.CreateAPIView):

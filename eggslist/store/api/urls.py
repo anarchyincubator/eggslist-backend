@@ -11,6 +11,7 @@ urlpatterns = [
     path("products/popular", views.PopularProductListAPIView.as_view(), name="product-popular"),
     path("products/recently-viewed", views.RecentlyViewedArticleListAPIView.as_view(), name="product-recently-viewed"),
     path("products/my", views.MyProductArticlesListAPIView.as_view(), name="product-my-articles"),
+    path("products/other-user/<int:seller_id>", views.OtherUserProductArticleListAPIView.as_view(), name="other-user-product"),
     path("products/my-hidden", views.MyHiddenProductArticlesListAPIView.as_view(), name="product-my-hidden"),
     path("products/create", views.ProductArticleCreateAPIView.as_view(), name="product-create"),
     path("products/<str:slug>", views.ProductArticleDetailAPIView().as_view(), name="product-detail"),
