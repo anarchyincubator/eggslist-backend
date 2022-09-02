@@ -102,8 +102,8 @@ class OtherUserProductArticleListAPIView(generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmall
-    lookup_field = "seller_id"
     pagination_class = ProfileProductPagination
+    lookup_field = "seller_id"
 
     def get_queryset(self):
         return models.ProductArticle.objects.get_for(self.kwargs[self.lookup_field])

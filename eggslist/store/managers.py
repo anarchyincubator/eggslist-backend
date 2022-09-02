@@ -9,8 +9,11 @@ class ProductArticlManager(Manager):
         if updted_number == 0:
             raise self.model.DoesNotExist()
 
+    def _get_prefetched(self):
+        return self.select_related("seller", "subcategory", "seller__zip_code__city__state")
+
     def get_all_prefetched(self) -> QuerySet:
-        return self.all().select_related("seller", "subcategory", "seller__zip_code__city__state")
+        return self._get_prefetched().exclude(is_hidden=True)
 
     def get_all_prefetched_for_city(self, city: t.Optional["LocationCity"]) -> QuerySet:
         if city is None:
@@ -19,12 +22,11 @@ class ProductArticlManager(Manager):
         return self.get_all_prefetched().filter(seller__zip_code__city=city)
 
     def get_best_similar_for(self, instance) -> QuerySet:
-        qs = (
+        return (
             self.exclude(slug=instance.slug)
             .filter(subcategory=instance.subcategory)
             .select_related("seller", "subcategory")[:4]
         )
-        return qs
 
     def get_from_the_same_farm_for(self, instance) -> QuerySet:
         return (
@@ -37,11 +39,11 @@ class ProductArticlManager(Manager):
         return self.get_all_prefetched().filter(seller=user, is_hidden=False)
 
     def get_hidden_for(self, user):
-        return self.get_all_prefetched().filter(seller=user, is_hidden=True)
+        return self._get_prefetched().filter(seller=user, is_hidden=True)
 
     def get_recently_viewed_for(self, user):
         return (
             self.get_all_prefetched()
             .filter(user_view_timestamps__user=user)
-            .order_by("-user_view_timestamps__timestamp")
+            .order_by("-user_view_timestamps__timestamp")[:8]
         )
