@@ -12,5 +12,6 @@ SELLER_NEEDS_EMAIL_VERIFICATION = _(
 ONLY_SELLER_CAN_UPDATE = _(
     "Only Product seller can adjust their products. Current user is not the owner of this product."
 )
+ONLY_SELLER_CAN_VIEW = _("Only product seller can view their hidden products")
 
 PRODUCT_ARTICLE_DOES_NOT_EXIST = _("There is no such Product Article in the database.")

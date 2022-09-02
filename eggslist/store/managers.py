@@ -15,6 +15,9 @@ class ProductArticlManager(Manager):
     def get_all_prefetched(self) -> QuerySet:
         return self._get_prefetched().exclude(is_hidden=True)
 
+    def get_all_prefetched_with_hidden(self) -> QuerySet:
+        return self._get_prefetched()
+
     def get_all_prefetched_for_city(self, city: t.Optional["LocationCity"]) -> QuerySet:
         if city is None:
             return self.get_all_prefetched()

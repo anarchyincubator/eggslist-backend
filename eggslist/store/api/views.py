@@ -119,12 +119,12 @@ class ProductArticleCreateAPIView(generics.CreateAPIView):
 
 class ProductArticleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ProductArticleSerializer
-    queryset = models.ProductArticle.objects.get_all_prefetched()
+    queryset = models.ProductArticle.objects.get_all_prefetched_with_hidden()
     lookup_field = "slug"
 
-    def permit_operation(self, instance):
+    def permit_operation(self, instance, message: str = messages.ONLY_SELLER_CAN_UPDATE):
         if instance.seller != self.request.user:
-            raise ValidationError({"message": messages.ONLY_SELLER_CAN_UPDATE})
+            raise ValidationError({"message": message})
 
     def perform_destroy(self, instance):
         self.permit_operation(instance)
@@ -143,6 +143,10 @@ class ProductArticleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        if instance.is_hidden:
+            self.permit_operation(instance, message=messages.ONLY_SELLER_CAN_VIEW)
+
         serializer = self.get_serializer(instance)
         self.user_viewed(product=instance)
         return Response(serializer.data)
