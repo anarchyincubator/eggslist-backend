@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
-from eggslist.users.user_location_storage import UserLocationStorage
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
@@ -29,15 +28,15 @@ class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmall
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = ProductFilter
     search_fields = ("title", "description")
-    ordering_fields = ("price", "date_created")
     pagination_class = PageNumberPaginationWithCount
 
     def get_queryset(self):
-        location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
-        return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)
+        return models.ProductArticle.objects.get_query_for_user(
+            user=self.request.user, user_id=self.get_user_id()
+        )
 
 
 class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
@@ -49,8 +48,9 @@ class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     pagination_class = PageNumberPaginationWithCount
 
     def get_queryset(self):
-        location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
-        return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)[:8]
+        return models.ProductArticle.objects.get_query_for_user(
+            user=self.request.user, user_id=self.get_user_id()
+        )[:8]
 
 
 class ProfileProductPagination(PageNumberPaginationWithCount):

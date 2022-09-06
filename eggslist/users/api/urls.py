@@ -20,5 +20,7 @@ urlpatterns = [
     path("locate", views.LocationAPIView.as_view(), name="locate"),
     path("set-location", views.SetLocationAPIView.as_view(), name="set-location"),
     path("become-verified-seller", views.BecomeVerifiedSellerAPIView.as_view(), name="become-verified-seller"),
+    path("<int:following_user>/change-favorite-status", views.ChangeFavoriteStatus.as_view(), name="change-favorite-status"),
+    path("profile/favorite-farmers", views.FavoriteUsersListAPIView.as_view(), name="favorite-farmers"),
 ]
 # fmt: on

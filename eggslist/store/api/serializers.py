@@ -1,4 +1,4 @@
-import random
+import typing as t
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -35,15 +35,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class SellerSerializerSmall(serializers.ModelSerializer):
-    is_favorite = serializers.SerializerMethodField()
-
-    def get_is_favorite(self, obj):
-        # This is only for dev purposes. Remove it when implement fav farms
-        return bool(random.getrandbits(1))
-
     class Meta:
         model = User
-        fields = ("id", "first_name", "last_name", "is_verified_seller", "is_favorite")
+        fields = ("id", "first_name", "last_name", "is_verified_seller")
 
 
 class SellerSerializer(serializers.ModelSerializer):
@@ -62,17 +56,25 @@ class SellerSerializer(serializers.ModelSerializer):
         )
 
 
-class ProductArticleSerializerSmall(serializers.ModelSerializer):
+class ProductSerializerBase(serializers.ModelSerializer):
+    def to_representation(self, instance) -> t.Dict:
+        data = super().to_representation(instance=instance)
+        if hasattr(instance, "seller__is_favorite"):
+            data["seller"]["is_favorite"] = instance.seller__is_favorite
+        return data
+
+
+class ProductArticleSerializerSmall(ProductSerializerBase):
     slug = serializers.CharField(read_only=True)
-    seller = SellerSerializerSmall(read_only=True)
     price = serializers.DecimalField(max_digits=8, decimal_places=2)
+    seller = SellerSerializerSmall(read_only=True)
 
     class Meta:
         model = models.ProductArticle
         fields = ("title", "image", "slug", "price", "seller")
 
 
-class ProductArticleSerializerSmallMy(serializers.ModelSerializer):
+class ProductArticleSerializerSmallMy(ProductSerializerBase):
     seller = SellerSerializerSmall(read_only=True)
 
     class Meta:
@@ -80,11 +82,10 @@ class ProductArticleSerializerSmallMy(serializers.ModelSerializer):
         fields = ("title", "image", "slug", "price", "seller", "is_hidden", "is_out_of_stock")
 
 
-class ProductArticleSerializer(serializers.ModelSerializer):
+class ProductArticleSerializer(ProductSerializerBase):
     slug = serializers.CharField(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     is_banned = serializers.BooleanField(read_only=True)
-    seller = SellerSerializer(many=False, read_only=True)
     subcategory = serializers.SlugRelatedField(
         slug_field="name", queryset=models.Subcategory.objects.all()
     )
@@ -92,6 +93,7 @@ class ProductArticleSerializer(serializers.ModelSerializer):
     is_out_of_stock = serializers.BooleanField(write_only=True)
     you_may_also_like = serializers.SerializerMethodField()
     more_from_this_farm = serializers.SerializerMethodField()
+    seller = SellerSerializer(read_only=True)
 
     class Meta:
         fields = (

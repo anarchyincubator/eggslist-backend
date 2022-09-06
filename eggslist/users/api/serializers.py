@@ -131,10 +131,19 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class OtherUserSerializerSmall(serializers.ModelSerializer):
+    user_location = UserZipCodeLocationSerializer(read_only=True, source="zip_code")
+
+    class Meta:
+        model = User
+        fields = ("id", "first_name", "last_name", "phone_number", "avatar", "user_location")
+
+
 class OtherUserSerializer(serializers.ModelSerializer):
     user_location = UserZipCodeLocationSerializer(
         required=False, read_only=True, source="zip_code"
     )
+    is_favorite = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -149,6 +158,7 @@ class OtherUserSerializer(serializers.ModelSerializer):
             "phone_number",
             "avatar",
             "bio",
+            "is_favorite",
         )
 
 

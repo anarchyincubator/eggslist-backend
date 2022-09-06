@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterModelManagers(
             name='user',
             managers=[
-                ('objects', eggslist.users.models.EggslistUserManager()),
+                ('objects', eggslist.users.managers.EggslistUserManager()),
             ],
         ),
         migrations.AddField(

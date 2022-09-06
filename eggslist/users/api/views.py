@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     CreateAPIView,
     GenericAPIView,
+    ListAPIView,
     RetrieveAPIView,
     RetrieveUpdateAPIView,
 )
@@ -93,7 +94,9 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
 
 class OtherUserProfileAPIView(RetrieveAPIView):
     serializer_class = serializers.OtherUserSerializer
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        return User.objects.get_for_user(user=self.request.user)
 
 
 class UserProfileLocationAPIView(GenericAPIView):
@@ -267,3 +270,23 @@ class BecomeVerifiedSellerAPIView(CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class ChangeFavoriteStatus(APIView):
+    lookup_url_kwargs = "following_user"
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        following_user_id = self.kwargs[self.lookup_url_kwargs]
+        models.UserFavoriteFarm.objects.create_or_delete(
+            user_id=self.request.user.id, following_user_id=following_user_id
+        )
+        return Response(status=200)
+
+
+class FavoriteUsersListAPIView(ListAPIView):
+    serializer_class = serializers.OtherUserSerializerSmall
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return User.objects.filter(followers__user=self.request.user)

@@ -102,3 +102,8 @@ class UserViewTimestamp(models.Model):
     class Meta:
         verbose_name = _("user view timestamp")
         verbose_name_plural = _("user view timestamps")
+        constraints = (
+            models.UniqueConstraint(
+                fields=("user", "product"), name="user_product_unique_constraint"
+            ),
+        )
