@@ -71,7 +71,7 @@ class ProductArticleSerializerSmall(ProductSerializerBase):
 
     class Meta:
         model = models.ProductArticle
-        fields = ("title", "image", "slug", "price", "seller")
+        fields = ("title", "image", "slug", "price", "seller", "is_out_of_stock")
 
 
 class ProductArticleSerializerSmallMy(ProductSerializerBase):
@@ -89,8 +89,6 @@ class ProductArticleSerializer(ProductSerializerBase):
     subcategory = serializers.SlugRelatedField(
         slug_field="name", queryset=models.Subcategory.objects.all()
     )
-    is_hidden = serializers.BooleanField(write_only=True)
-    is_out_of_stock = serializers.BooleanField(write_only=True)
     you_may_also_like = serializers.SerializerMethodField()
     more_from_this_farm = serializers.SerializerMethodField()
     seller = SellerSerializer(read_only=True)
@@ -116,11 +114,17 @@ class ProductArticleSerializer(ProductSerializerBase):
         model = models.ProductArticle
 
     def get_you_may_also_like(self, obj):
-        qs = models.ProductArticle.objects.get_best_similar_for(obj)
+        user = self.context["request"].user
+        user_id = self.context["user_id"]
+        qs = models.ProductArticle.objects.get_best_similar_for(obj, user=user, user_id=user_id)
         return ProductArticleSerializerSmall(qs, many=True).data
 
     def get_more_from_this_farm(self, obj):
-        qs = models.ProductArticle.objects.get_from_the_same_farm_for(obj)
+        user = self.context["request"].user
+        user_id = self.context["user_id"]
+        qs = models.ProductArticle.objects.get_from_the_same_farm_for(
+            obj, user=user, user_id=user_id
+        )
         return ProductArticleSerializerSmall(qs, many=True).data
 
     def create(self, validated_data):

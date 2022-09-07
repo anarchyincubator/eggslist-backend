@@ -273,6 +273,11 @@ class BecomeVerifiedSellerAPIView(CreateAPIView):
 
 
 class ChangeFavoriteStatus(APIView):
+    """
+    Add to favorite when user is not in `my favorite farmers`. Remove from
+    favorites when user is in `my favorite farmers`
+    """
+
     lookup_url_kwargs = "following_user"
     permission_classes = (IsAuthenticated,)
 
@@ -285,6 +290,10 @@ class ChangeFavoriteStatus(APIView):
 
 
 class FavoriteUsersListAPIView(ListAPIView):
+    """
+    Return list of `my favorite farmers`
+    """
+
     serializer_class = serializers.OtherUserSerializerSmall
     permission_classes = (IsAuthenticated,)
 

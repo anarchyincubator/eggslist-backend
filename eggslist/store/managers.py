@@ -12,73 +12,6 @@ class ProductArticlManager(Manager):
         if updted_number == 0:
             raise self.model.DoesNotExist()
 
-    def _get_prefetched(self):
-        return self.select_related("seller", "subcategory", "seller__zip_code__city__state")
-
-    def _get_all_prefetched_visible(self, filter_kwargs: t.Optional[t.Dict] = None) -> QuerySet:
-        if filter_kwargs is None:
-            filter_kwargs = {}
-        return self._get_prefetched().filter(is_hidden=False, **filter_kwargs)
-
-    def _get_all_for_city(
-        self, city: t.Optional["LocationCity"], filter_kwargs: t.Optional[t.Dict] = None
-    ) -> QuerySet:
-        """
-        Query product for a particular city
-        """
-        if filter_kwargs is None:
-            filter_kwargs = {}
-
-        if city is None:
-            return self._get_all_prefetched_visible()
-
-        filter_kwargs.update(seller__zip_code__city=city)
-        return self._get_all_prefetched_visible().filter(**filter_kwargs)
-
-    def get_all_prefetched_with_hidden(self) -> QuerySet:
-        return self._get_prefetched()
-
-    def get_query_for_user(
-        self, user, user_id: t.Union[int, str], filter_kwargs: t.Optional[t.Dict] = None
-    ):
-        """
-        Get QuerySet for a user by user location. If it is an authenticated user annotate favorite farmers.
-        """
-        city = UserLocationStorage.get_user_location(user_id)
-        if user.is_authenticated:
-            user_favorite_farms = UserFavoriteFarm.objects.filter(
-                user=user, following_user=OuterRef("seller_id")
-            ).values("following_user")
-            return self._get_all_for_city(city=city, filter_kwargs=filter_kwargs).annotate(
-                seller__is_favorite=Exists(user_favorite_farms)
-            )
-
-        return self._get_all_for_city(city=city, filter_kwargs=filter_kwargs).annotate(
-            seller__is_favorite=Value(False)
-        )
-
-    def get_best_similar_for(self, instance) -> QuerySet:
-        # TODO: Add favorite farmers annotation
-        return (
-            self
-            # .exclude(slug=instance.slug, is_hidden=True)
-            .filter(
-                ~Q(slug=instance.slug), ~Q(is_hidden=True), subcategory=instance.subcategory
-            ).select_related("seller", "subcategory")[:4]
-        )
-
-    def get_from_the_same_farm_for(self, instance) -> QuerySet:
-        # TODO: Add favorite farmers annotation
-        return self.filter(  # .exclude(slug=instance.slug, is_hidden=True)
-            ~Q(slug=instance.slug), ~Q(is_hidden=True), seller=instance.seller
-        ).select_related("seller", "subcategory")[:4]
-
-    def get_for(self, user):
-        return self._get_all_prefetched_visible(filter_kwargs={"seller": user})
-
-    def get_hidden_for(self, user):
-        return self._get_prefetched().filter(seller=user, is_hidden=True)
-
     def _annotate_with_favorites(self, qs, user):
         """
         Annotate a queryset with seller__is_favorite parameter. Use only with user.
@@ -92,8 +25,70 @@ class ProductArticlManager(Manager):
         )
         return qs.annotate(seller__is_favorite=user_favorite_farms)
 
+    def _get_city_filter_kwargs(self, user_id: t.Union[str, int]) -> t.Dict:
+        """
+        Get filter kwargs to be included in a `filter` method of a queryset to
+        filter it by city
+        """
+        filter_kwargs = {}
+        city = UserLocationStorage.get_user_location(user_id)
+        if city is not None:
+            filter_kwargs["seller__zip_code__city"] = city
+
+        return filter_kwargs
+
     def get_recently_viewed_for(self, user):
         qs = self.filter(user_view_timestamps__user=user, is_hidden=False)
         return self._annotate_with_favorites(qs, user).order_by(
             "-user_view_timestamps__timestamp"
         )[:8]
+
+    def get_for(self, user):
+        return self.filter(seller=user, is_hidden=False).select_related(
+            "subcategory", "seller__zip_code__city__state"
+        )
+
+    def get_for_other(self, user, other_user_id):
+        qs = self.filter(seller_id=other_user_id, is_hidden=False).select_related(
+            "subcategory", "seller"
+        )
+        return self._annotate_with_favorites(qs, user=user)
+
+    def get_hidden_for(self, user):
+        return self.filter(seller=user, is_hidden=True).select_related(
+            "subcategory", "seller__zip_code__city__state"
+        )
+
+    def get_best_similar_for(self, instance, user, user_id) -> QuerySet:
+        city_filter_kwargs = self._get_city_filter_kwargs(user_id=user_id)
+        qs = self.filter(
+            ~Q(slug=instance.slug),
+            ~Q(is_hidden=True),
+            subcategory=instance.subcategory,
+            **city_filter_kwargs
+        ).select_related("seller", "subcategory")
+        return self._annotate_with_favorites(qs=qs, user=user)[:4]
+
+    def get_from_the_same_farm_for(self, instance, user, user_id) -> QuerySet:
+        city_filter_kwargs = self._get_city_filter_kwargs(user_id=user_id)
+        qs = self.filter(
+            ~Q(slug=instance.slug),
+            ~Q(is_hidden=True),
+            seller=instance.seller,
+            **city_filter_kwargs
+        ).select_related("seller", "subcategory")
+        return self._annotate_with_favorites(qs=qs, user=user)[:4]
+
+    def get_all_catalog_no_hidden(self, user, user_id):
+        city_filter_kwargs = self._get_city_filter_kwargs(user_id=user_id)
+        qs = self.filter(is_hidden=False, **city_filter_kwargs).select_related(
+            "seller__zip_code__city", "subcategory"
+        )
+        return self._annotate_with_favorites(qs, user=user)
+
+    def get_all_catalog_with_hidden(self, user, user_id):
+        city_filter_kwargs = self._get_city_filter_kwargs(user_id=user_id)
+        qs = self.filter(**city_filter_kwargs).select_related(
+            "seller__zip_code__city__state", "subcategory"
+        )
+        return self._annotate_with_favorites(qs, user=user)
