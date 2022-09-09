@@ -103,16 +103,15 @@ class SetLocationSerializer(serializers.Serializer):
     slug = serializers.CharField(help_text=_("Slug of a city location object"))
 
 
-class SetUserZipCodeSerializer(serializers.Serializer):
-    zip_code = serializers.CharField(help_text=_("Slug of a zip code location object"))
-
-
 class UserSerializer(serializers.ModelSerializer):
     user_location = UserZipCodeLocationSerializer(
         required=False, read_only=True, source="zip_code"
     )
     is_email_verified = serializers.BooleanField(read_only=True)
     is_verified_seller = serializers.BooleanField(read_only=True)
+    zip_code = serializers.SlugRelatedField(
+        slug_field="slug", write_only=True, queryset=LocationZipCode.objects.all(), required=False
+    )
 
     class Meta:
         model = User
@@ -128,6 +127,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number",
             "avatar",
             "bio",
+            "zip_code",
         )
 
 
