@@ -9,7 +9,7 @@ from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 from phonenumber_field.modelfields import PhoneNumberField
 
-from eggslist.users import managers
+from eggslist.users import constants, managers
 from eggslist.users.user_location_storage import UserLocationStorage
 
 if t.TYPE_CHECKING:
@@ -38,6 +38,9 @@ class User(AbstractUser):
     )
 
     is_verified_seller = models.BooleanField(verbose_name=_("is verified seller"), default=False)
+    is_verified_seller_pending = models.BooleanField(
+        verbose_name=_("is verified seller pending"), default=False
+    )
     bio = models.CharField(verbose_name=_("bio"), max_length=1024, null=True, blank=True)
     # Location
     zip_code = models.ForeignKey(
@@ -69,7 +72,10 @@ class VerifiedSellerApplication(models.Model):
     """
 
     user = models.ForeignKey(
-        verbose_name=_("user"), to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+        verbose_name=_("user"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="applications",
     )
     image = ProcessedImageField(
         verbose_name=_("image"),
@@ -80,10 +86,17 @@ class VerifiedSellerApplication(models.Model):
     )
     text = models.TextField(verbose_name=_("text"))
     is_approved = models.BooleanField(verbose_name=_("is_approved"), default=False)
+    status = models.IntegerField(
+        verbose_name=_("status"), choices=constants.APPLICATION_STATUS, default=constants.PENDING
+    )
 
     class Meta:
         verbose_name = _("verified seller application")
         verbose_name_plural = _("verified seller application")
+        ordering = ("status",)
+
+    def __str__(self):
+        return f"Verification Application for {self.user.first_name}"
 
 
 class UserFavoriteFarm(models.Model):

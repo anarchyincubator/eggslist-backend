@@ -1,0 +1,4 @@
+PENDING = 0
+APPROVED = 1
+REFUSED = 2
+APPLICATION_STATUS = ((PENDING, "pending"), (APPROVED, "approved"), (REFUSED, "refused"))
