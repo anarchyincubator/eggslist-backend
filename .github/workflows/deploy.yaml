@@ -7,48 +7,51 @@ env:
   NGINX_IMAGE: fedorgrab/eggslist-nginx:latest
 
 jobs:
-
+  
+  environment_check:
+    name: Define Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Current Environment
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/production" ]; then
+            echo "::set-output name=env_name::production"
+          elif [ "${{ github.ref }}" = "refs/heads/development" ]; then
+            echo "::set-output name=env_name::development"
+          else
+             echo "::set-output name=env_name::development"
+          fi 
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+  
   build:
     name: Build Docker Images
+    needs: [environment_check]
     runs-on: ubuntu-latest
+    environment: ${{ needs.environment_check.outputs.env_name }}
     steps:
       - name: Checkout master
         uses: actions/checkout@v1
-      - name: Add environment variables to .env
-        run: |
-          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-          echo ENVIRONMENT=${{ secrets.ENVIRONMENT }} >> .env
-          echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
-          echo DB_USER=${{ secrets.DB_USER }} >> .env
-          echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-          echo REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} >> .env
-          echo REDIS_HOST=${{ secrets.REDIS_HOST }} >> .env
-          echo REDIS_PORT=${{ secrets.REDIS_PORT }} >> .env
-          echo REDIS_DB=${{ secrets.REDIS_DB }} >> .env
-          echo EMAIL_HOST=${{ secrets.EMAIL_HOST }} >> .env
-          echo EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }} >> .env
-          echo EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }} >> .env
-          echo DEFAULT_FROM_EMAIL=${{ secrets.DEFAULT_FROM_EMAIL }} >> .env
-          echo EMAIL_PORT=${{ secrets.EMAIL_PORT }} >> .env
-          echo WEB_IMAGE=${{ secrets.WEB_IMAGE }} >> .env
-          echo NGINX_IMAGE=${{ secrets.NGINX_IMAGE }} >> .env
-          echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
-          echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
-          echo DO_ACCESS_KEY_ID=${{ secrets.DO_ACCESS_KEY_ID  }} >> .env
-          echo DO_SECRET_ACCESS_KEY=${{ secrets.DO_SECRET_ACCESS_KEY }} >> .env
-          echo DO_STORAGE_BUCKET_NAME=${{ secrets.DO_STORAGE_BUCKET_NAME }} >> .env
-      - name: Set environment variables
+          
+      - name: Use variable setup in previous step
+        run: echo "I'm using variable ${{ needs.environment_check.outputs.env_name }}"
+        
+      - name: Add Application Environment Variables to .env
+        run: echo ${{ secrets.DJANGO_ENV_B64 }} | base64 -d >> .env
+
+      - name: Set development environment variables
         run: |
           echo "WEB_IMAGE=$(echo ${{env.WEB_IMAGE}} )" >> $GITHUB_ENV
           echo "NGINX_IMAGE=$(echo ${{env.NGINX_IMAGE}} )" >> $GITHUB_ENV
           echo "CERTBOT_EMAIL=$(echo ${{env.CERTBOT_EMAIL}} )" >> $GITHUB_ENV
-
-      - name: Log in to GitHub Packages
+          
+      - name: Log in to Docker Registry Hub
         run: docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          
       - name: Pull images
         run: |
           docker pull ${{ env.WEB_IMAGE }} || true
@@ -66,16 +69,15 @@ jobs:
   deploy:
     name: Deploy to DigitalOcean
     runs-on: ubuntu-latest
-    needs: build
+    needs: [environment_check, build]
+    environment: ${{ needs.environment_check.outputs.env_name }}
     steps:
       - name: Checkout master
         uses: actions/checkout@v1
       - name: Add environment variables to .env
         run: |
           echo WEB_IMAGE=${{ env.WEB_IMAGE }} >> .env
-          echo NAMESPACE=${{ secrets.NAMESPACE }} >> .env
-          echo PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }} >> .env
-          echo DIGITAL_OCEAN_TOKEN=${{ secrets.DIGITAL_OCEAN_TOKEN }} >> .env
+          echo NGINX_IMAGE=${{ env.NGINX_IMAGE }} >> .env
           echo CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} >> .env
       - name: Add the private SSH key to the ssh-agent
         env:
