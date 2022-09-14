@@ -11,7 +11,6 @@ urlpatterns = [
     path("sign-in", views.JWTSignInAPIView.as_view(), name="sign-in"),
     path("profile", views.UserProfileAPIView.as_view(), name="current"),
     path("profile/<int:pk>", views.OtherUserProfileAPIView.as_view(), name="other-user-profile"),
-    path("profile/update-user-location", views.UserProfileLocationAPIView.as_view(), name="update-user-location"),
     path("password-change", views.PasswordChangeAPIView.as_view(), name="password-change"),
     path("password-reset-request", views.PasswordResetRequest.as_view(), name="password-reset-request"),
     path("password-reset-confirm", views.PasswordResetConfirm.as_view(), name="password-reset-confirm"),
@@ -20,5 +19,7 @@ urlpatterns = [
     path("locate", views.LocationAPIView.as_view(), name="locate"),
     path("set-location", views.SetLocationAPIView.as_view(), name="set-location"),
     path("become-verified-seller", views.BecomeVerifiedSellerAPIView.as_view(), name="become-verified-seller"),
+    path("<int:following_user>/change-favorite-status", views.ChangeFavoriteStatus.as_view(), name="change-favorite-status"),
+    path("profile/favorite-farmers", views.FavoriteUsersListAPIView.as_view(), name="favorite-farmers"),
 ]
 # fmt: on

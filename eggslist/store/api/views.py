@@ -1,3 +1,5 @@
+import typing as t
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
@@ -7,7 +9,6 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
-from eggslist.users.user_location_storage import UserLocationStorage
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
@@ -29,15 +30,15 @@ class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmall
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = ProductFilter
     search_fields = ("title", "description")
-    ordering_fields = ("price", "date_created")
     pagination_class = PageNumberPaginationWithCount
 
     def get_queryset(self):
-        location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
-        return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)
+        return models.ProductArticle.objects.get_all_catalog_no_hidden(
+            user=self.request.user, user_id=self.get_user_id()
+        )
 
 
 class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
@@ -49,8 +50,9 @@ class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     pagination_class = PageNumberPaginationWithCount
 
     def get_queryset(self):
-        location_city = UserLocationStorage.get_user_location(user_id=self.get_user_id())
-        return models.ProductArticle.objects.get_all_prefetched_for_city(city=location_city)[:8]
+        return models.ProductArticle.objects.get_all_catalog_no_hidden(
+            user=self.request.user, user_id=self.get_user_id()
+        )[:8]
 
 
 class ProfileProductPagination(PageNumberPaginationWithCount):
@@ -106,7 +108,9 @@ class OtherUserProductArticleListAPIView(generics.ListAPIView):
     lookup_field = "seller_id"
 
     def get_queryset(self):
-        return models.ProductArticle.objects.get_for(self.kwargs[self.lookup_field])
+        return models.ProductArticle.objects.get_for_other(
+            user=self.request.user, other_user_id=self.kwargs[self.lookup_field]
+        )
 
 
 class ProductArticleCreateAPIView(generics.CreateAPIView):
@@ -117,10 +121,21 @@ class ProductArticleCreateAPIView(generics.CreateAPIView):
         serializer.save(seller=self.request.user)
 
 
-class ProductArticleDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ProductArticleSerializer
-    queryset = models.ProductArticle.objects.get_all_prefetched_with_hidden()
     lookup_field = "slug"
+
+    def get_queryset(self):
+        return models.ProductArticle.objects.get_all_catalog_with_hidden(
+            user=self.request.user, user_id=self.get_user_id()
+        )
+
+    def get_serializer_context(self) -> t.Dict:
+        context = super().get_serializer_context()
+
+        if hasattr(self.request, "user"):
+            context.update(user_id=self.get_user_id())
+        return context
 
     def permit_operation(self, instance, message: str = messages.ONLY_SELLER_CAN_UPDATE):
         if instance.seller != self.request.user:

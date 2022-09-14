@@ -9,3 +9,4 @@ class UsersAppsConfig(AppConfig):
 
     def ready(self):
         import eggslist.users.user_create_rule  # noqa
+        import eggslist.users.verified_seller_application  # noqa

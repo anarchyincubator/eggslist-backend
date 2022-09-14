@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     CreateAPIView,
     GenericAPIView,
+    ListAPIView,
     RetrieveAPIView,
     RetrieveUpdateAPIView,
 )
@@ -93,26 +94,9 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
 
 class OtherUserProfileAPIView(RetrieveAPIView):
     serializer_class = serializers.OtherUserSerializer
-    queryset = User.objects.all()
 
-
-class UserProfileLocationAPIView(GenericAPIView):
-    """
-    Do not mix up this method with Set Location API method. This method is responsible for
-    a user profile location information. This location is stored in database and necessary for
-    sellers to show where their goods are.
-    """
-
-    serializer_class = serializers.SetUserZipCodeSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request: "HttpRequest", *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        User.objects.update_location(
-            email=request.user.email, zip_code_slug=serializer.validated_data["zip_code"]
-        )
-        return Response(status=200)
+    def get_queryset(self):
+        return User.objects.get_for_user(user=self.request.user)
 
 
 class PasswordChangeAPIView(GenericAPIView):
@@ -267,3 +251,32 @@ class BecomeVerifiedSellerAPIView(CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class ChangeFavoriteStatus(APIView):
+    """
+    Add to favorite when user is not in `my favorite farmers`. Remove from
+    favorites when user is in `my favorite farmers`
+    """
+
+    lookup_url_kwargs = "following_user"
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        following_user_id = self.kwargs[self.lookup_url_kwargs]
+        models.UserFavoriteFarm.objects.create_or_delete(
+            user_id=self.request.user.id, following_user_id=following_user_id
+        )
+        return Response(status=200)
+
+
+class FavoriteUsersListAPIView(ListAPIView):
+    """
+    Return list of `my favorite farmers`
+    """
+
+    serializer_class = serializers.OtherUserSerializerSmall
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return User.objects.filter(followers__user=self.request.user)

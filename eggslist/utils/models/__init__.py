@@ -1,8 +1,13 @@
 import secrets
 
 from django.db import models
+from django.db.models import Field
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+
+from eggslist.utils.models.lookups import NotEqual
+
+Field.register_lookup(NotEqual)
 
 
 class _SlugModelMixin:
