@@ -87,7 +87,7 @@ class ProductArticleSerializer(ProductSerializerBase):
     date_created = serializers.DateTimeField(read_only=True)
     is_banned = serializers.BooleanField(read_only=True)
     subcategory = serializers.SlugRelatedField(
-        slug_field="name", queryset=models.Subcategory.objects.all()
+        slug_field="slug", queryset=models.Subcategory.objects.all()
     )
     you_may_also_like = serializers.SerializerMethodField()
     more_from_this_farm = serializers.SerializerMethodField()
