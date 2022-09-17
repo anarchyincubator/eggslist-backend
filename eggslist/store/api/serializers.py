@@ -86,9 +86,13 @@ class ProductArticleSerializer(ProductSerializerBase):
     slug = serializers.CharField(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     is_banned = serializers.BooleanField(read_only=True)
-    subcategory = serializers.SlugRelatedField(
-        slug_field="slug", queryset=models.Subcategory.objects.all()
+    subcategory_slug = serializers.SlugRelatedField(
+        source="subcategory",
+        slug_field="slug",
+        queryset=models.Subcategory.objects.all(),
+        write_only=True,
     )
+    subcategory = SubcategorySerializer(read_only=True)
     you_may_also_like = serializers.SerializerMethodField()
     more_from_this_farm = serializers.SerializerMethodField()
     seller = SellerSerializer(read_only=True)
@@ -100,6 +104,7 @@ class ProductArticleSerializer(ProductSerializerBase):
             "slug",
             "description",
             "subcategory",
+            "subcategory_slug",
             "date_created",
             "allow_pickup",
             "allow_delivery",
@@ -129,7 +134,7 @@ class ProductArticleSerializer(ProductSerializerBase):
 
     def create(self, validated_data):
         try:
-            return models.ProductArticle.objects.create(**validated_data)
+            return super().create(validated_data)
         except article_create_rule.SellerNeedsMoreInfo:
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_MORE_INFO})
         except article_create_rule.SellerNeedsEmailVerification:
