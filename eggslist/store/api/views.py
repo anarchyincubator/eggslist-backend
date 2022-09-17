@@ -113,12 +113,19 @@ class OtherUserProductArticleListAPIView(generics.ListAPIView):
         )
 
 
-class ProductArticleCreateAPIView(generics.CreateAPIView):
+class ProductArticleCreateAPIView(AnonymousUserIdAPIMixin, generics.CreateAPIView):
     serializer_class = serializers.ProductArticleSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
+
+    def get_serializer_context(self) -> t.Dict:
+        context = super().get_serializer_context()
+
+        if hasattr(self.request, "user"):
+            context.update(user_id=self.get_user_id())
+        return context
 
 
 class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpdateDestroyAPIView):
