@@ -40,7 +40,15 @@ jobs:
         
       - name: Add Application Environment Variables to .env
         run: echo ${{ secrets.DJANGO_ENV_B64 }} | base64 -d >> .env
-          
+    
+      - name: Set Nginx file depending on environment
+        run: |
+         if [ "${{ needs.environment_check.outputs.env_name  }}" = "development" ]; then
+           cat ./deploy/eggslist-nginx.conf.dev >> ./deploy/eggslist-nginx.conf
+         elif [ "${{ needs.environment_check.outputs.env_name  }}" = "production" ];then
+           cat ./deploy/eggslist-nginx.conf.prod >> ./deploy/eggslist-nginx.conf
+         fi
+
       - name: Log in to Docker Registry Hub
         run: docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         env:
