@@ -39,3 +39,9 @@ class FAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FAQ
         fields = ("question", "answer")
+
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.TeamMember
+        fields = ("first_name", "last_name", "image", "job_title")

@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
 
 from eggslist.utils.models import NameSlugModel
 
@@ -89,3 +91,22 @@ class FAQ(models.Model):
 
     def __str__(self):
         return self.question
+
+
+class TeamMember(models.Model):
+    first_name = models.CharField(verbose_name=_("first name"), max_length=128)
+    last_name = models.CharField(verbose_name=_("last name"), max_length=128)
+    image = ProcessedImageField(
+        upload_to="about",
+        processors=[ResizeToFill(300, 300)],
+        format="JPEG",
+        options={"quality": 70},
+    )
+    job_title = models.CharField(verbose_name=_("job title"), max_length=128)
+
+    class Meta:
+        verbose_name = _("team member")
+        verbose_name_plural = _("team members")
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
