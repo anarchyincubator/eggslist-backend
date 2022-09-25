@@ -37,3 +37,8 @@ class TestimonialListAPIView(generics.ListAPIView):
 class FAQListAPIView(generics.ListAPIView):
     serializer_class = serializers.FAQSerializer
     queryset = models.FAQ.objects.all()
+
+
+class TeamMemberAPIView(generics.ListAPIView):
+    serializer_class = serializers.TeamMemberSerializer
+    queryset = models.TeamMember.objects.all()

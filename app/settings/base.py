@@ -30,6 +30,7 @@ SITE_ID = 1
 SITE_URL = "https://eggslist.com"
 CSRF_TRUSTED_ORIGINS = [
     "https://eggslist.com",
+    "https://backend.eggslist.com",
     "http://206.189.255.110",
     "https://206.189.255.110",
     "https://eggslist-dev.ferialabs.com",

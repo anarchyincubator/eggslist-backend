@@ -22,7 +22,8 @@ class EggslistAdminSite(admin.AdminSite):
             "LocationCity": 3,
             "LocationZipCode": 4,
             "Testimonial": 5,
-            "FAQ": 6,
+            "TeamMember": 6,
+            "FAQ": 7,
             "Group": 1,
         }
         apps_ordering = {"store": 1, "blogs": 2, "users": 3, "site_configuration": 4, "auth": 5}

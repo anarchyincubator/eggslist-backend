@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from eggslist.site_configuration import models
+from eggslist.utils.admin import ImageAdmin
 
 
 @admin.register(models.LocationCountry)
@@ -38,3 +39,9 @@ class TestimonialAdmin(admin.ModelAdmin):
 @admin.register(models.FAQ)
 class FAQAdmin(admin.ModelAdmin):
     list_display = ("question", "answer")
+
+
+@admin.register(models.TeamMember)
+class TeamMemberAdmin(ImageAdmin):
+    list_display = ("first_name", "last_name", "job_title")
+    list_display_images = ("image",)
