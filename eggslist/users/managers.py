@@ -1,3 +1,5 @@
+import secrets
+
 from django.apps import apps
 from django.contrib.auth.models import UserManager
 from django.db import IntegrityError
@@ -12,7 +14,7 @@ class EggslistUserManager(UserManager):
         if email is None or password is None:
             raise ValueError("`email` and `password` are required fields to create the user")
         if username is None:
-            username = email
+            username = secrets.token_hex(9)
 
         user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)

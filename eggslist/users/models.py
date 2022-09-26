@@ -51,6 +51,8 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
     )
     objects = managers.EggslistUserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     @property
     def user_location(self) -> "LocationCity":

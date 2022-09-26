@@ -14,7 +14,7 @@ class EggslistAuthenticationBackend(ModelBackend):
         if (username is None and email is None) or password is None:
             return
         try:
-            user = UserModel.objects.get(Q(username=username) | Q(email=email))
+            user = UserModel.objects.get(Q(username=username) | Q(email__in=[email, username]))
         except UserModel.DoesNotExist:
             # Run the default password hasher once to reduce the timing
             # difference between an existing and a nonexistent user (#20760).
