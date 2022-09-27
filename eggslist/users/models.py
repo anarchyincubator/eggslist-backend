@@ -130,3 +130,10 @@ class UserFavoriteFarm(models.Model):
                 fields=("user", "following_user"), name="favorite_farm_unique_constraint"
             ),
         )
+
+
+class UserIPLocationLog(models.Model):
+    ip_address = models.CharField(verbose_name=_("ip address"), max_length=128)
+    determined_city = models.CharField(
+        verbose_name=_("determined city"), max_length=128, null=True
+    )
