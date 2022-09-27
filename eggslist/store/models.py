@@ -16,10 +16,12 @@ class Category(NameSlugModel):
         format="JPEG",
         options={"quality": 70},
     )
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = _("category")
         verbose_name_plural = _("categories")
+        ordering = ("position",)
 
 
 class Subcategory(NameSlugModel):

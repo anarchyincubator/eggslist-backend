@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     "phonenumber_field",
     "storages",
     "imagekit",
+    "adminsortable2",
     # project applications
     "eggslist.users",
     "eggslist.site_configuration",
