@@ -14,7 +14,7 @@ def locate_ip(ip_address: str) -> t.Optional[str]:
         location = {}
     try:
         user_location = LocationCity.objects.select_related("state__country").get(
-            name=location.get("city", ""), state__name=location.get("region", "")
+            name__icontains=location.get("city", ""), state__name=location.get("region", "")
         )
     except LocationCity.DoesNotExist:
         return None

@@ -62,6 +62,7 @@ class LocationZipCode(NameSlugModel):
         related_name="zip_codes",
         on_delete=models.CASCADE,
     )
+    system_name = models.CharField(verbose_name=_("system name"), max_length=64, default="")
     objects = LocationZipCodeManager()
 
     class Meta:
