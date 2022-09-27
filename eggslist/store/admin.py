@@ -16,7 +16,7 @@ class CategoryAdmin(SortableAdminMixin, ImageAdmin):
     list_display = ("position", "name", "subcategories")
     list_display_images = ("image",)
     readonly_fields = ("slug",)
-    inlines = (SubcategoryInline,)
+    # inlines = (SubcategoryInline,)
     ordering = ("position",)
 
     def subcategories(self, obj):

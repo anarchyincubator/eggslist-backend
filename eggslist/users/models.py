@@ -62,6 +62,10 @@ class User(AbstractUser):
     def user_location(self, value: "LocationCity"):
         UserLocationStorage.set_user_location(self.id, city_location=value)
 
+    def set_password(self, *args, **kwargs):
+        super().set_password(*args, **kwargs)
+        self._set_password = True
+
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")

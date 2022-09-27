@@ -9,11 +9,11 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
-from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMixin
+from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
 
-class CategoryListAPIView(CacheListAPIMixin, generics.ListAPIView):
+class CategoryListAPIView(generics.ListAPIView):
     """Get Product Categories"""
 
     cache_key = "categories"
