@@ -101,6 +101,9 @@ class UserZipCodeLocationSerializer(serializers.ModelSerializer):
 
 class SetLocationSerializer(serializers.Serializer):
     slug = serializers.CharField(help_text=_("Slug of a city location object"))
+    lookup_radius = serializers.IntegerField(
+        help_text=_("A radius within we need to look the products for")
+    )
 
 
 class UserSerializer(serializers.ModelSerializer):

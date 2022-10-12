@@ -1,5 +1,6 @@
 import typing as t
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
@@ -196,7 +197,7 @@ class LocationAPIView(AnonymousUserIdAPIMixin, RetrieveAPIView):
     serializer_class = serializers.UserLocationSerializer
 
     def get_location_instance(self):
-        user_city_location = UserLocationStorage.get_user_location(user_id=self.get_user_id())
+        user_city_location, _ = UserLocationStorage.get_user_location(user_id=self.get_user_id())
 
         if user_city_location is not None:
             return user_city_location
@@ -222,7 +223,9 @@ class LocationAPIView(AnonymousUserIdAPIMixin, RetrieveAPIView):
         response = Response(serializer.data)
 
         UserLocationStorage.set_user_location(
-            user_id=self.get_user_id(), city_location=location_instance
+            user_id=self.get_user_id(),
+            city_location=location_instance,
+            lookup_radius=settings.DEFAULT_LOOKUP_RADIUS,
         )
 
         return response
@@ -240,7 +243,9 @@ class SetLocationAPIView(AnonymousUserIdAPIMixin, GenericAPIView):
         serializer.is_valid(raise_exception=True)
         city_location_instance = LocationCity.objects.get(slug=serializer.validated_data["slug"])
         UserLocationStorage.set_user_location(
-            user_id=self.get_user_id(), city_location=city_location_instance
+            user_id=self.get_user_id(),
+            city_location=city_location_instance,
+            lookup_radius=serializer.validated_data["lookup_radius"],
         )
         return Response()
 

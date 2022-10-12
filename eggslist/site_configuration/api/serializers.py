@@ -13,20 +13,22 @@ class StateLocationSerializer(serializers.ModelSerializer):
 
 class CityLocationSerializer(serializers.ModelSerializer):
     state = serializers.CharField(source="state.name")
+    state_full_name = serializers.CharField(source="state.full_name")
     country = serializers.CharField(source="state.country.name")
 
     class Meta:
         model = models.LocationCity
-        fields = ("slug", "name", "state", "country")
+        fields = ("slug", "name", "state_full_name", "state", "country")
 
 
 class ZipCodeLocationSerializer(serializers.ModelSerializer):
     city = serializers.CharField(source="city.name")
     state = serializers.CharField(source="city.state.name")
+    state_full_name = serializers.CharField(source="city.state.full_name")
 
     class Meta:
         model = models.LocationZipCode
-        fields = ("slug", "name", "state", "city")
+        fields = ("slug", "name", "state", "state_full_name", "city")
 
 
 class TestimonialSerializer(serializers.ModelSerializer):

@@ -19,7 +19,6 @@ PATHS = {
 }
 SECRET_KEY = env("SECRET_KEY")
 
-
 #########################
 # Application definition
 #########################
@@ -35,6 +34,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://206.189.255.110",
     "https://eggslist-dev.ferialabs.com",
 ]
+DEFAULT_LOOKUP_RADIUS = 20  # in miles
 
 INSTALLED_APPS = (
     # django package
@@ -43,8 +43,8 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.gis",
     "django.contrib.sites",
-    # "django.contrib.admin",
     "app.admin.EggslistAdminConfig",
     # third-party packages
     "rest_framework",
@@ -84,7 +84,7 @@ WSGI_APPLICATION = "app.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
@@ -92,7 +92,8 @@ DATABASES = {
         "PORT": env("DB_PORT", str, ""),
     }
 }
-
+# GDAL_LIBRARY_PATH = "/opt/homebrew/opt/gdal/lib/libgdal.dylib"
+# GEOS_LIBRARY_PATH = "/opt/homebrew/opt/geos/lib/libgeos_c.dylib"
 #########################
 # Cache
 #########################
@@ -199,6 +200,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 GEOIP_PATH = str(APP_DIR.path("app", "geolite2"))
 GEO_ZIP_PATH = f"{GEOIP_PATH}/uszips_states.csv"
+GEO_CITIES_PATH = f"{GEOIP_PATH}/us_cities.csv"
 
 #########################
 # Rest Framework Settings

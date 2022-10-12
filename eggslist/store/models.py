@@ -12,7 +12,7 @@ from eggslist.utils.models import NameSlugModel, TitleSlugModel
 class Category(NameSlugModel):
     image = ProcessedImageField(
         upload_to="categories",
-        processors=[ResizeToFill(300, 140)],
+        processors=[ResizeToFill(600, 280)],
         format="JPEG",
         options={"quality": 70},
     )
