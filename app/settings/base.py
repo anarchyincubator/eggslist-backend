@@ -35,6 +35,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://eggslist-dev.ferialabs.com",
 ]
 DEFAULT_LOOKUP_RADIUS = 20  # in miles
+DEFAULT_LOCATION = {"CITY": "Boston", "STATE": "MA"}
 
 INSTALLED_APPS = (
     # django package

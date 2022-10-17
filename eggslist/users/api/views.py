@@ -2,6 +2,7 @@ import typing as t
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.http import Http404
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     CreateAPIView,
@@ -17,7 +18,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users import models
-from eggslist.users.determine_location import locate_ip
+from eggslist.users.determine_location import locate_request
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, JWTMixin
@@ -75,6 +76,7 @@ class SignUpAPIView(JWTMixin, GenericAPIView):
 
 class SignOutAPIView(APIView):
     """
+    Deprecated
     Remove Auth cookies
     """
 
@@ -197,38 +199,31 @@ class LocationAPIView(AnonymousUserIdAPIMixin, RetrieveAPIView):
     serializer_class = serializers.UserLocationSerializer
 
     def get_location_instance(self):
-        user_city_location, _ = UserLocationStorage.get_user_location(user_id=self.get_user_id())
-
-        if user_city_location is not None:
-            return user_city_location
-
-        ip_address = self.request.META.get(
-            "HTTP_X_FORWARDED_FOR", self.request.META.get("REMOTE_ADDR", "")
+        location_city, lookup_radius, is_undefined = UserLocationStorage.get_user_location(
+            user_id=self.get_user_id()
         )
-        user_city_location = locate_ip(ip_address)
 
-        # This should be removed as it is designed only for dev purposes
-        if self.request.query_params.get("r"):
-            return LocationCity.objects.get(slug="boston")
+        if location_city is not None:
+            return location_city, lookup_radius, is_undefined
 
-        return user_city_location
-
-    def retrieve(self, request, *args, **kwargs):
-        location_instance = self.get_location_instance()
-
-        if location_instance is None:
-            return Response()
-
-        serializer = self.get_serializer(location_instance)
-        response = Response(serializer.data)
-
+        # The code below is executed when there is no data about user's location in cache
+        location_city, is_undefined = locate_request(self.request)
+        lookup_radius = settings.DEFAULT_LOOKUP_RADIUS
         UserLocationStorage.set_user_location(
             user_id=self.get_user_id(),
-            city_location=location_instance,
-            lookup_radius=settings.DEFAULT_LOOKUP_RADIUS,
+            city_location=location_city,
+            lookup_radius=lookup_radius,
+            is_undefined=is_undefined,
         )
+        return location_city, lookup_radius, is_undefined
 
-        return response
+    def retrieve(self, request, *args, **kwargs):
+        location_instance, lookup_radius, is_undefined = self.get_location_instance()
+        serializer = self.get_serializer(
+            location_instance,
+            context={"lookup_radius": lookup_radius, "is_undefined": is_undefined},
+        )
+        return Response(serializer.data)
 
 
 class SetLocationAPIView(AnonymousUserIdAPIMixin, GenericAPIView):
@@ -241,11 +236,17 @@ class SetLocationAPIView(AnonymousUserIdAPIMixin, GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        city_location_instance = LocationCity.objects.get(slug=serializer.validated_data["slug"])
+        try:
+            city_location_instance = LocationCity.objects.get(
+                slug=serializer.validated_data["slug"]
+            )
+        except LocationCity.DoesNotExist:
+            raise Http404
         UserLocationStorage.set_user_location(
             user_id=self.get_user_id(),
             city_location=city_location_instance,
             lookup_radius=serializer.validated_data["lookup_radius"],
+            is_undefined=False,
         )
         return Response()
 
