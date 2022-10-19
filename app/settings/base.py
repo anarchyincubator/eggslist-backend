@@ -64,16 +64,17 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # "app.middleware.session.AnonymousIdSessionMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     # "django.middleware.csrf.CsrfViewMiddleware",
-    "app.middleware.authentication.AnonymousIdAuthenticationMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "app.middleware.location.LocationMiddleware",
+    "app.middleware.authentication.AnonymousIdAuthenticationMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -225,9 +226,9 @@ AUTH_ANONYMOUS_MODEL = "users.AnonymousUser"
 AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-ANONYMOUS_USER_ID_SESSION_KEY = "anonymous_id"
+ANONYMOUS_USER_ID_COOKIE = "anonymous_id"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
-
+SESSION_COOKIE_DOMAIN = ".eggslist.com"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,
 }

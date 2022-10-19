@@ -2,25 +2,31 @@ import secrets
 import typing as t
 
 from django.conf import settings
-from django.contrib.auth.middleware import AuthenticationMiddleware
 
 if t.TYPE_CHECKING:
     from django.http import HttpRequest
 
 
-class AnonymousIdAuthenticationMiddleware(AuthenticationMiddleware):
-    """
-    If the user is not authenticated assign a unique id to the user
-    Modify AnonymousUser so it has an `id` field with a value of the generated
-    key stored in session
-    Recommended to use this Middleware with a Cookie session engine
-    """
+class AnonymousIdAuthenticationMiddleware:
+    def __init__(self, get_response: t.Callable):
+        self.get_response = get_response
 
-    def process_request(self, request: "HttpRequest"):
-        super().process_request(request=request)
-        if request.user.is_anonymous:
-            unique_id = request.session.get(settings.ANONYMOUS_USER_ID_SESSION_KEY)
+    def __call__(self, request: "HttpRequest"):
+        anon_user_id = request.COOKIES.get(settings.ANONYMOUS_USER_ID_COOKIE, None)
 
-            if unique_id is None:
-                unique_id = secrets.token_hex(6)
-                request.session[settings.ANONYMOUS_USER_ID_SESSION_KEY] = unique_id
+        if request.user.is_anonymous and anon_user_id is None:
+            anon_user_id = secrets.token_hex(6)
+            request.COOKIES[settings.ANONYMOUS_USER_ID_COOKIE] = anon_user_id
+            response = self.get_response(request)
+            response.set_cookie(settings.ANONYMOUS_USER_ID_COOKIE, anon_user_id)
+            return response
+        elif (
+            request.user.is_authenticated
+            and request.COOKIES.get(settings.ANONYMOUS_USER_ID_COOKIE) is not None
+        ):
+            response = self.get_response(request)
+            response.delete_cookie(settings.ANONYMOUS_USER_ID_COOKIE)
+            return response
+
+        response = self.get_response(request)
+        return response
