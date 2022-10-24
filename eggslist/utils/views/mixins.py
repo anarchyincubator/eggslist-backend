@@ -22,7 +22,7 @@ class CacheListAPIMixin:
 class AnonymousUserIdAPIMixin:
     def get_user_id(self):
         if self.request.user.is_anonymous:
-            return self.request.session[settings.ANONYMOUS_USER_ID_SESSION_KEY]
+            return self.request.COOKIES.get(settings.ANONYMOUS_USER_ID_COOKIE)
         else:
             return self.request.user.id
 

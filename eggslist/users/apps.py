@@ -8,5 +8,6 @@ class UsersAppsConfig(AppConfig):
     verbose_name = _("users")
 
     def ready(self):
-        import eggslist.users.user_create_rule  # noqa
-        import eggslist.users.verified_seller_application  # noqa
+        import eggslist.users.signals.user_create_rule  # noqa
+        import eggslist.users.signals.verified_seller_application  # noqa
+        import eggslist.users.signals.change_password_notification  # noqa

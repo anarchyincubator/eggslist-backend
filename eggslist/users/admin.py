@@ -7,6 +7,11 @@ from eggslist.users import constants, models
 from eggslist.utils.admin import ImageAdmin
 
 
+@admin.register(models.UserIPLocationLog)
+class IPLog(admin.ModelAdmin):
+    list_display = ("ip_address", "determined_city")
+
+
 @admin.register(models.User)
 class UserAdmin(DjangoUserAdmin):
     fieldsets = (

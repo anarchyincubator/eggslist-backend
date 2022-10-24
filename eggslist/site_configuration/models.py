@@ -1,9 +1,10 @@
+from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 
-from eggslist.utils.models import NameSlugModel
+from eggslist.utils.models import NameSlugModel, _SlugModelMixin
 
 
 class LocationStateManager(models.Manager):
@@ -11,12 +12,12 @@ class LocationStateManager(models.Manager):
         return super().get_queryset().select_related("country")
 
 
-class LocationCityManager(models.Manager):
+class LocationCityManager(gis_models.Manager):
     def get_queryset(self):
         return super().get_queryset().select_related("state__country")
 
 
-class LocationZipCodeManager(models.Manager):
+class LocationZipCodeManager(gis_models.Manager):
     def get_queryset(self):
         return super().get_queryset().select_related("city__state__country")
 
@@ -34,6 +35,7 @@ class LocationState(NameSlugModel):
         related_name="states",
         on_delete=models.CASCADE,
     )
+    full_name = models.CharField(verbose_name=_("full name"), max_length=64)
     objects = LocationStateManager()
 
     class Meta:
@@ -41,32 +43,49 @@ class LocationState(NameSlugModel):
         verbose_name_plural = _("location states")
 
 
-class LocationCity(NameSlugModel):
+class LocationCity(_SlugModelMixin, gis_models.Model):
+    name = models.CharField(verbose_name=_("name"), max_length=64)
+    slug = models.SlugField(verbose_name=_("slug"), max_length=128, unique=True)
     state = models.ForeignKey(
         verbose_name=_("state"),
         to="LocationState",
         related_name="cities",
         on_delete=models.CASCADE,
     )
+    location = gis_models.PointField(verbose_name=_("location"), null=True, blank=True)
+    slug_field_name = "name"
+    slug_field_unique = True
     objects = LocationCityManager()
 
     class Meta:
         verbose_name = _("location city")
         verbose_name_plural = _("location cities")
 
+    def __str__(self):
+        return self.name
 
-class LocationZipCode(NameSlugModel):
+
+class LocationZipCode(_SlugModelMixin, gis_models.Model):
+    name = models.CharField(verbose_name=_("name"), max_length=64)
+    slug = models.SlugField(verbose_name=_("slug"), max_length=128, unique=True)
     city = models.ForeignKey(
         verbose_name=_("city"),
         to="LocationCity",
         related_name="zip_codes",
         on_delete=models.CASCADE,
     )
+    system_name = models.CharField(verbose_name=_("system name"), max_length=64, default="")
+    location = gis_models.PointField(verbose_name=_("location"), null=True, blank=True)
     objects = LocationZipCodeManager()
+    slug_field_name = "name"
+    slug_field_unique = True
 
     class Meta:
         verbose_name = _("location zip code")
         verbose_name_plural = _("location zip codes")
+
+    def __str__(self):
+        return self.name
 
 
 class Testimonial(models.Model):

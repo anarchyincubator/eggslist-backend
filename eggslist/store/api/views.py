@@ -1,5 +1,6 @@
 import typing as t
 
+from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
@@ -9,11 +10,11 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
-from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, CacheListAPIMixin
+from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
 
-class CategoryListAPIView(CacheListAPIMixin, generics.ListAPIView):
+class CategoryListAPIView(generics.ListAPIView):
     """Get Product Categories"""
 
     cache_key = "categories"
@@ -129,6 +130,12 @@ class ProductArticleCreateAPIView(AnonymousUserIdAPIMixin, generics.CreateAPIVie
 
 
 class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpdateDestroyAPIView):
+    """
+    Return a single product article from all of the locations.
+    Return 404 if article is hidden and current user is not an
+    owner of the product.
+    """
+
     serializer_class = serializers.ProductArticleSerializer
     lookup_field = "slug"
 
@@ -144,6 +151,14 @@ class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpda
             context.update(user_id=self.get_user_id())
         return context
 
+    def get_object(self):
+        instance = super().get_object()
+        if instance.seller != self.request.user and instance.is_hidden:
+            # Allow only product owner to view it if it's hidden
+            raise Http404
+
+        return instance
+
     def permit_operation(self, instance, message: str = messages.ONLY_SELLER_CAN_UPDATE):
         if instance.seller != self.request.user:
             raise ValidationError({"message": message})
@@ -157,6 +172,9 @@ class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpda
         return super().perform_update(serializer)
 
     def user_viewed(self, product):
+        """
+        Update `Recently Viewed List`
+        """
         user = self.request.user
         if not user.is_authenticated:
             return
@@ -165,10 +183,6 @@ class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpda
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-
-        if instance.is_hidden:
-            self.permit_operation(instance, message=messages.ONLY_SELLER_CAN_VIEW)
-
         serializer = self.get_serializer(instance)
         self.user_viewed(product=instance)
         return Response(serializer.data)

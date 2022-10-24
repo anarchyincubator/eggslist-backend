@@ -1,10 +1,6 @@
 name: Continuous Integration and Delivery
 
-on:
-  push:
-    branches:
-      - production
-      - development
+on: [push]
         
 jobs:
   

@@ -12,14 +12,16 @@ from eggslist.utils.models import NameSlugModel, TitleSlugModel
 class Category(NameSlugModel):
     image = ProcessedImageField(
         upload_to="categories",
-        processors=[ResizeToFill(300, 140)],
+        processors=[ResizeToFill(600, 280)],
         format="JPEG",
         options={"quality": 70},
     )
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = _("category")
         verbose_name_plural = _("categories")
+        ordering = ("position",)
 
 
 class Subcategory(NameSlugModel):

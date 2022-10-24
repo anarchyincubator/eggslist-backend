@@ -1,3 +1,4 @@
+from adminsortable2.admin import SortableAdminMixin
 from django.contrib import admin
 
 from eggslist.store import models
@@ -11,11 +12,12 @@ class SubcategoryInline(admin.StackedInline):
 
 
 @admin.register(models.Category)
-class CategoryAdmin(ImageAdmin):
-    list_display = ("name", "subcategories")
+class CategoryAdmin(SortableAdminMixin, ImageAdmin):
+    list_display = ("position", "name", "subcategories")
     list_display_images = ("image",)
     readonly_fields = ("slug",)
     inlines = (SubcategoryInline,)
+    ordering = ("position",)
 
     def subcategories(self, obj):
         return ", ".join([x.name for x in obj.subcategories.all()])
@@ -34,6 +36,8 @@ class ProductArticleAdmin(ImageAdmin):
     list_display_images = ("image",)
     list_select_related = ("seller", "subcategory")
     readonly_fields = ("engagement_count", "date_created", "slug")
+    search_fields = ("subcategory__name", "title", "description")
+    list_filter = ("is_hidden", "is_out_of_stock", "is_banned", "date_created")
 
 
 @admin.register(models.UserViewTimestamp)

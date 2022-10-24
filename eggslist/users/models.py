@@ -51,6 +51,8 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
     )
     objects = managers.EggslistUserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     @property
     def user_location(self) -> "LocationCity":
@@ -59,6 +61,10 @@ class User(AbstractUser):
     @user_location.setter
     def user_location(self, value: "LocationCity"):
         UserLocationStorage.set_user_location(self.id, city_location=value)
+
+    def set_password(self, *args, **kwargs):
+        super().set_password(*args, **kwargs)
+        self._set_password = True
 
     class Meta:
         verbose_name = _("user")
@@ -124,3 +130,10 @@ class UserFavoriteFarm(models.Model):
                 fields=("user", "following_user"), name="favorite_farm_unique_constraint"
             ),
         )
+
+
+class UserIPLocationLog(models.Model):
+    ip_address = models.CharField(verbose_name=_("ip address"), max_length=128)
+    determined_city = models.CharField(
+        verbose_name=_("determined city"), max_length=128, null=True
+    )
