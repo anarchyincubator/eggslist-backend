@@ -1,5 +1,6 @@
 from django.urls import path
 
+from eggslist.utils.social.api import views as social_views
 from . import views
 
 app_name = "users"
@@ -9,6 +10,10 @@ app_name = "users"
 urlpatterns = [
     path("sign-up", views.SignUpAPIView.as_view(), name="sign-up"),
     path("sign-in", views.JWTSignInAPIView.as_view(), name="sign-in"),
+    path("social/google/sign-in", social_views.GoogleAuthURLAPIView.as_view(), name="google-sign-in"),
+    path("social/google/callback", social_views.GoogleAuthCallbackAPIView.as_view(), name="google-callback"),
+    path("social/facebook/sign-in", social_views.FacebookAuthURLAPIView.as_view(), name="sign-in-google-callback"),
+    path("social/facebook/callback", social_views.FacebookAuthCallbackAPIView.as_view(), name="sign-in-facebook-callback"),
     path("profile", views.UserProfileAPIView.as_view(), name="current"),
     path("profile/<int:pk>", views.OtherUserProfileAPIView.as_view(), name="other-user-profile"),
     path("password-change", views.PasswordChangeAPIView.as_view(), name="password-change"),

@@ -246,3 +246,16 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_USE_SSL = True
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+
+######################
+# Social Auth Settings
+######################
+GOOGLE_AUTH_REDIRECT_URL = "social/google/sign-in"
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
+GOOGLE_SECRET_KEY = env("GOOGLE_SECRET_KEY")
+GOOGLE_OAUTH_SCOPE = ["openid", "email", "profile"]
+FACEBOOK_AUTH_REDIRECT_URL = "social/facebook/sign-in"
+FACEBOOK_CLIENT_ID = env("FACEBOOK_CLIENT_ID")
+FACEBOOK_SECRET_KEY = env("FACEBOOK_SECRET_KEY")
+FACEBOOK_OAUTH_SCOPE = ["email", "profile"]
