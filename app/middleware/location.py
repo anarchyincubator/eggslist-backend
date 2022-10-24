@@ -33,5 +33,6 @@ class LocationMiddleware:
             is_undefined=is_undefined,
         )
 
-        response.set_cookie("location_set", True)
+        response.set_cookie("location_set", True, domain=settings.SESSION_COOKIE_DOMAIN)
+
         return response
