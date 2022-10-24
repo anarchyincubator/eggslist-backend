@@ -19,7 +19,6 @@ PATHS = {
 }
 SECRET_KEY = env("SECRET_KEY")
 
-
 #########################
 # Application definition
 #########################
@@ -35,6 +34,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://206.189.255.110",
     "https://eggslist-dev.ferialabs.com",
 ]
+DEFAULT_LOOKUP_RADIUS = 20  # in miles
+DEFAULT_LOCATION = {"CITY": "Boston", "STATE": "MA"}
 
 INSTALLED_APPS = (
     # django package
@@ -43,8 +44,8 @@ INSTALLED_APPS = (
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.gis",
     "django.contrib.sites",
-    # "django.contrib.admin",
     "app.admin.EggslistAdminConfig",
     # third-party packages
     "rest_framework",
@@ -63,16 +64,17 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # "app.middleware.session.AnonymousIdSessionMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     # "django.middleware.csrf.CsrfViewMiddleware",
-    "app.middleware.authentication.AnonymousIdAuthenticationMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "app.middleware.location.LocationMiddleware",
+    "app.middleware.authentication.AnonymousIdAuthenticationMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -84,7 +86,7 @@ WSGI_APPLICATION = "app.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
@@ -92,7 +94,8 @@ DATABASES = {
         "PORT": env("DB_PORT", str, ""),
     }
 }
-
+# GDAL_LIBRARY_PATH = "/opt/homebrew/opt/gdal/lib/libgdal.dylib"
+# GEOS_LIBRARY_PATH = "/opt/homebrew/opt/geos/lib/libgeos_c.dylib"
 #########################
 # Cache
 #########################
@@ -199,6 +202,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 GEOIP_PATH = str(APP_DIR.path("app", "geolite2"))
 GEO_ZIP_PATH = f"{GEOIP_PATH}/uszips_states.csv"
+GEO_CITIES_PATH = f"{GEOIP_PATH}/us_cities.csv"
 
 #########################
 # Rest Framework Settings
@@ -222,9 +226,9 @@ AUTH_ANONYMOUS_MODEL = "users.AnonymousUser"
 AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-ANONYMOUS_USER_ID_SESSION_KEY = "anonymous_id"
+ANONYMOUS_USER_ID_COOKIE = "anonymous_id"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
-
+SESSION_COOKIE_DOMAIN = ".eggslist.com"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,
 }

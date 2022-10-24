@@ -12,7 +12,7 @@ class CountryAdmin(admin.ModelAdmin):
 
 @admin.register(models.LocationState)
 class StateAdmin(admin.ModelAdmin):
-    list_display = ("name", "country")
+    list_display = ("name", "full_name", "country")
     list_select_related = ("country",)
     readonly_fields = ("slug",)
 
@@ -22,6 +22,8 @@ class CityAdmin(admin.ModelAdmin):
     list_display = ("name", "state")
     list_select_related = ("state",)
     readonly_fields = ("slug",)
+    search_fields = ("name",)
+    list_filter = ("state",)
 
 
 @admin.register(models.LocationZipCode)
@@ -29,6 +31,8 @@ class ZipCodeAdmin(admin.ModelAdmin):
     list_display = ("name", "city")
     list_select_related = ("city",)
     readonly_fields = ("slug",)
+    search_fields = ("name", "city__name")
+    list_filter = ("city__state",)
 
 
 @admin.register(models.Testimonial)

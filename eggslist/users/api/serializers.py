@@ -83,10 +83,18 @@ class UserLocationSerializer(serializers.ModelSerializer):
     city = serializers.CharField(source="name")
     state = serializers.CharField(source="state.name")
     country = serializers.CharField(source="state.country.name")
+    lookup_radius = serializers.SerializerMethodField()
+    is_undefined = serializers.SerializerMethodField()
+
+    def get_lookup_radius(self, obj):
+        return self.context["lookup_radius"]
+
+    def get_is_undefined(self, obj):
+        return self.context["is_undefined"]
 
     class Meta:
         model = LocationCity
-        fields = ("slug", "city", "state", "country")
+        fields = ("slug", "city", "state", "country", "lookup_radius", "is_undefined")
 
 
 class UserZipCodeLocationSerializer(serializers.ModelSerializer):
@@ -101,6 +109,9 @@ class UserZipCodeLocationSerializer(serializers.ModelSerializer):
 
 class SetLocationSerializer(serializers.Serializer):
     slug = serializers.CharField(help_text=_("Slug of a city location object"))
+    lookup_radius = serializers.IntegerField(
+        help_text=_("A radius within we need to look the products for")
+    )
 
 
 class UserSerializer(serializers.ModelSerializer):
