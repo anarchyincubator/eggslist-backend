@@ -74,7 +74,6 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "app.middleware.location.LocationMiddleware",
-    "app.middleware.authentication.AnonymousIdAuthenticationMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -94,8 +93,7 @@ DATABASES = {
         "PORT": env("DB_PORT", str, ""),
     }
 }
-# GDAL_LIBRARY_PATH = "/opt/homebrew/opt/gdal/lib/libgdal.dylib"
-# GEOS_LIBRARY_PATH = "/opt/homebrew/opt/geos/lib/libgeos_c.dylib"
+
 #########################
 # Cache
 #########################
@@ -175,28 +173,6 @@ TEMPLATES = [
     }
 ]
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "stat_time": {"format": "[%(asctime)s] %(message)s"},
-        "verbose": {"format": "{levelname} {asctime} {message}", "style": "{"},
-    },
-    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
-    "handlers": {
-        "mail_admins": {
-            "level": "ERROR",
-            "filters": ["require_debug_false"],
-            "class": "django.utils.log.AdminEmailHandler",
-        },
-        "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
-    },
-    "loggers": {
-        "django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True},
-        "django.db.backends": {"level": "DEBUG", "handlers": ["console"]},
-    },
-}
-
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
@@ -222,11 +198,10 @@ REST_FRAMEWORK = {
 ################
 
 AUTH_USER_MODEL = "users.User"
-AUTH_ANONYMOUS_MODEL = "users.AnonymousUser"
 AUTHENTICATION_BACKENDS = ("eggslist.users.backends.EggslistAuthenticationBackend",)
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-ANONYMOUS_USER_ID_COOKIE = "anonymous_id"
+USER_LOCATION_COOKIE_NAME = "user_location_id"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_COOKIE_DOMAIN = ".eggslist.com"
 SIMPLE_JWT = {

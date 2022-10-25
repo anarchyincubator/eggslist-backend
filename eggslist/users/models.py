@@ -2,7 +2,6 @@ import typing as t
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.models import AnonymousUser as DjangoAnonymousUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
@@ -14,13 +13,6 @@ from eggslist.users.user_location_storage import UserLocationStorage
 
 if t.TYPE_CHECKING:
     from eggslist.site_configuration.models import LocationCity
-
-
-class AnonymousUser(DjangoAnonymousUser):
-    def __init__(self, request):
-        request.session.create()
-        self.id = request.session.session_key
-        super().__init__()
 
 
 class User(AbstractUser):

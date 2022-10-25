@@ -1,6 +1,5 @@
 import typing as t
 
-from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.http import Http404
 from rest_framework.exceptions import ValidationError
@@ -18,7 +17,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users import models
-from eggslist.users.determine_location import locate_request
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, JWTMixin
@@ -199,26 +197,12 @@ class LocationAPIView(AnonymousUserIdAPIMixin, RetrieveAPIView):
     serializer_class = serializers.UserLocationSerializer
 
     def get_location_instance(self):
-        location_city, lookup_radius, is_undefined = UserLocationStorage.get_user_location(
-            user_id=self.get_user_id()
-        )
-
-        if location_city is not None:
-            return location_city, lookup_radius, is_undefined
-
-        # The code below is executed when there is no data about user's location in cache
-        location_city, is_undefined = locate_request(self.request)
-        lookup_radius = settings.DEFAULT_LOOKUP_RADIUS
-        UserLocationStorage.set_user_location(
-            user_id=self.get_user_id(),
-            city_location=location_city,
-            lookup_radius=lookup_radius,
-            is_undefined=is_undefined,
-        )
-        return location_city, lookup_radius, is_undefined
+        return UserLocationStorage.get_user_location(user_id=self.get_user_id())
 
     def retrieve(self, request, *args, **kwargs):
-        location_instance, lookup_radius, is_undefined = self.get_location_instance()
+        location_instance, lookup_radius, is_undefined = UserLocationStorage.get_user_location(
+            user_id=self.get_user_id()
+        )
         serializer = self.get_serializer(
             location_instance,
             context={"lookup_radius": lookup_radius, "is_undefined": is_undefined},

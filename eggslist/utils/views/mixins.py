@@ -21,10 +21,7 @@ class CacheListAPIMixin:
 
 class AnonymousUserIdAPIMixin:
     def get_user_id(self):
-        if self.request.user.is_anonymous:
-            return self.request.COOKIES.get(settings.ANONYMOUS_USER_ID_COOKIE)
-        else:
-            return self.request.user.id
+        return self.request.COOKIES.get(settings.USER_LOCATION_COOKIE_NAME)
 
 
 class JWTMixin:
