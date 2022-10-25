@@ -1,3 +1,4 @@
+from adminsortable2.admin import SortableAdminMixin
 from django.contrib import admin
 
 from eggslist.site_configuration import models
@@ -36,16 +37,16 @@ class ZipCodeAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Testimonial)
-class TestimonialAdmin(admin.ModelAdmin):
-    list_display = ("author_name", "body")
+class TestimonialAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ("position", "author_name", "body")
 
 
 @admin.register(models.FAQ)
-class FAQAdmin(admin.ModelAdmin):
-    list_display = ("question", "answer")
+class FAQAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ("position", "question", "answer")
 
 
 @admin.register(models.TeamMember)
-class TeamMemberAdmin(ImageAdmin):
-    list_display = ("first_name", "last_name", "job_title")
+class TeamMemberAdmin(SortableAdminMixin, ImageAdmin):
+    list_display = ("position", "first_name", "last_name", "job_title")
     list_display_images = ("image",)

@@ -91,10 +91,12 @@ class LocationZipCode(_SlugModelMixin, gis_models.Model):
 class Testimonial(models.Model):
     author_name = models.CharField(verbose_name=_("author name"), max_length=32)
     body = models.TextField(verbose_name=_("body"))
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = _("testimonial")
         verbose_name_plural = _("testimonials")
+        ordering = ("position",)
 
     def __str__(self):
         return f"{self.author_name} -- {self.body[:40]}..."
@@ -103,10 +105,12 @@ class Testimonial(models.Model):
 class FAQ(models.Model):
     question = models.CharField(verbose_name=_("question"), max_length=256)
     answer = models.TextField(verbose_name=_("answer"))
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = "FAQ"
         verbose_name_plural = "FAQs"
+        ordering = ("position",)
 
     def __str__(self):
         return self.question
@@ -122,10 +126,12 @@ class TeamMember(models.Model):
         options={"quality": 70},
     )
     job_title = models.CharField(verbose_name=_("job title"), max_length=128)
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
 
     class Meta:
         verbose_name = _("team member")
         verbose_name_plural = _("team members")
+        ordering = ("position",)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
