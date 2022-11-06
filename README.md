@@ -1,5 +1,46 @@
 # Eggslist Backend Application
-
+## Deploy
+For a local app run use:
+`python manage.py runserver`
+### Application Components
+* [Postgres](https://www.postgresql.org/) database with [Postgis](https://postgis.net/) extension
+* [Redis](https://redis.io/) for cache framework
+### Environment
+`.env` file is reuqired in the root directory:
+```
+# Main
+SECRET_KEY
+ENVIRONMENT # choice of local, development, prod – affects which settings is used
+# Database
+DB_NAME
+DB_USER
+DB_PASSWORD
+DB_HOST
+DB_PORT
+# Redis
+REDIS_PASSWORD
+REDIS_HOST
+REDIS_PORT
+REDIS_DB
+# Email
+EMAIL_HOST
+EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD
+DEFAULT_FROM_EMAIL
+EMAIL_PORT
+# Static and Media Bucket Info
+DO_ACCESS_KEY_ID
+DO_SECRET_ACCESS_KEY
+DO_STORAGE_BUCKET_NAME
+# Social Auth
+GOOGLE_CLIENT_ID
+GOOGLE_SECRET_KEY
+FACEBOOK_CLIENT_ID
+FACEBOOK_SECRET_KEY
+```
+### CI/CD
+CI/CD is set up through GitHub Actions with 2 possible environments: development and production. \
+All of the secrest are stored in a secret storage and could be adjusted by repo admins.
 ## Contribution
 ### Pull Requests
 Please, create pull requests with base: **development** and compare: your feature branch. Nothing should go to **production** bypassing the **development** and review of eggslist team.
@@ -34,4 +75,4 @@ Release `Month Day`: `message` \
 `optional-message-body`
 
 Examples: \
-`Release Oct 25: Revision Location Cookies` \
+`Release Oct 25: Revision Location Cookies`
