@@ -2,6 +2,9 @@
 ## Deploy
 For a local app run use:
 `python manage.py runserver`
+### Application Components
+* [Postgres](https://www.postgresql.org/) database with [Postgis](https://postgis.net/) extension
+* [Redis](https://redis.io/) for cache framework
 ### Environment
 `.env` file is reuqired in the root directory:
 ```
