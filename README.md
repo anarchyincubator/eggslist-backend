@@ -1,12 +1,21 @@
 # Eggslist Backend Application
-## Deploy
+## Local Deploy
 For a local app run use:
-`python manage.py runserver`
+```
+python manage.py runserver
+```
 ### Application Components
 * [Postgres](https://www.postgresql.org/) database with [Postgis](https://postgis.net/) extension
 * [Redis](https://redis.io/) for cache framework
-### Environment
-`.env` file is reuqired in the root directory:
+### Environment Requirements
+* [GDAL](https://gdal.org/) installed to your machine. Please, have a look at the [installation guide](https://docs.djangoproject.com/en/4.1/ref/contrib/gis/install/#macos). If you install with homebrew, include the following to local settings:
+```
+GDAL_LIBRARY_PATH = '/opt/homebrew/opt/gdal/lib/libgdal.dylib'
+GEOS_LIBRARY_PATH = '/opt/homebrew/opt/geos/lib/libgeos_c.dylib'
+``` 
+
+* Local Settings file **app/settings/local.py**, refer to **app/settings/local-example.py**. **app/settings/local.py** must include `SESSION_COOKIE_DOMAIN = "127.0.0.1"` or `SESSION_COOKIE_DOMAIN = "localhost"`
+* `.env` file in the root directory:
 ```
 # Main
 SECRET_KEY
@@ -38,13 +47,18 @@ GOOGLE_SECRET_KEY
 FACEBOOK_CLIENT_ID
 FACEBOOK_SECRET_KEY
 ```
+
 ### CI/CD
 CI/CD is set up through GitHub Actions with 2 possible environments: development and production. \
-All of the secrest are stored in a secret storage and could be adjusted by repo admins.
+All of the secrets are stored in a secret storage and could be adjusted by repo admins by a developer request.
+
 ## Contribution
 ### Pull Requests
 Please, create pull requests with base: **development** and compare: your feature branch. Nothing should go to **production** bypassing the **development** and review of eggslist team.
 ### Commit message guide
+#### Pre-commit
+Before commit install [pre-commit](https://pre-commit.com/#install) to your environment and [activate it](https://pre-commit.com/#usage). This will reformat your code before each of your commits. \
+Run `git add .`, then `git commit`. `pre-commit` will reformat the code, then repeat `git add`, `git commit` again
 #### Feature commit (goes to any feature branch or to **development** branch)
 Commit names should follow the structure: \
 `commit-key-word`: `issue` -- `message` \
