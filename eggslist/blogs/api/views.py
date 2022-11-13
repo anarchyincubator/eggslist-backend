@@ -1,7 +1,11 @@
+from collections import OrderedDict
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from eggslist.blogs import models
 from eggslist.blogs.api import serializers
@@ -15,6 +19,23 @@ class CategoryListAPIView(generics.ListAPIView):
 
 class BlogPagination(PageNumberPagination):
     page_size = 12
+
+    def paginate_queryset(self, queryset, request, view=None):
+        try:
+            return super().paginate_queryset(queryset, request, view=view)
+        except NotFound:  # intercept NotFound exception
+            return list()
+
+    def get_paginated_response(self, data):
+        """Avoid case when self does not have page properties for empty list"""
+        if hasattr(self, "page") and self.page is not None:
+            return super().get_paginated_response(data)
+        else:
+            return Response(
+                OrderedDict(
+                    [("count", None), ("next", None), ("previous", None), ("results", data)]
+                )
+            )
 
 
 class FeaturedBlogListAPIView(generics.ListAPIView):
