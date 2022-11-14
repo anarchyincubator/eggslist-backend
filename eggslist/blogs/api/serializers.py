@@ -14,14 +14,12 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class AuthorSerializerSmall(serializers.ModelSerializer):
     class Meta:
-        fields = ("first_name", "last_name")
+        fields = ("first_name", "last_name", "id")
         model = User
 
 
 class BlogSerializerSmall(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field="name", queryset=models.BlogCategory.objects.all()
-    )
+    category = CategorySerializer(many=False)
     author = AuthorSerializerSmall(many=False, read_only=True)
 
     class Meta:

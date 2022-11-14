@@ -23,7 +23,7 @@ class BlogPagination(PageNumberPagination):
     def paginate_queryset(self, queryset, request, view=None):
         try:
             return super().paginate_queryset(queryset, request, view=view)
-        except NotFound:  # intercept NotFound exception
+        except NotFound:
             return list()
 
     def get_paginated_response(self, data):
@@ -46,7 +46,7 @@ class FeaturedBlogListAPIView(generics.ListAPIView):
 
 class BlogListAPIView(generics.ListAPIView):
     serializer_class = serializers.BlogSerializerSmall
-    queryset = models.BlogArticle.objects.all()
+    queryset = models.BlogArticle.objects.select_related("category", "author").order_by("id")
     pagination_class = BlogPagination
     filterset_class = BlogFilter
     filter_backends = (DjangoFilterBackend, SearchFilter)
