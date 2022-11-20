@@ -112,7 +112,7 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
             account = stripe.Account.retrieve(user.stripe_connection.stripe_account)
             if account.details_submitted:
                 user.stripe_connection.is_onboarding_completed = True
-                user.save()
+                user.stripe_connection.save()
         return super().retrieve(request, *args, **kwargs)
 
     def get_object(self):
