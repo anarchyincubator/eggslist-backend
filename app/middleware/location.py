@@ -16,7 +16,7 @@ class LocationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request: "HttpRequest"):
-        if request.path.startswith(reverse("stripe-webhook")):
+        if request.path.startswith(reverse("eggslist:stripe-webhook")):
             return self.get_response(request)
 
         user_location_id = request.COOKIES.get(settings.USER_LOCATION_COOKIE_NAME, None)

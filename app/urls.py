@@ -9,7 +9,7 @@ from eggslist.utils.stripe.views import StripeWebhooks
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("api/", include("eggslist.urls")),
+    path("api/", include("eggslist.urls", namespace="eggslist")),
     path("summernote/", include("django_summernote.urls")),
     path("stripe-webhooks", StripeWebhooks.as_view(), name="stripe-webhook"),
 ]
