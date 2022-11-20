@@ -50,14 +50,12 @@ class StripeWebhooks(APIView):
         event = stripe.Event.construct_from(request.data, stripe.api_key)
         try:
             stripe_connection = UserStripeConnection.objects.get(
-                stripe_account=event.account
-                if getattr(event, "account", None)
-                else event.stripe_account
+                stripe_account=event.account if hasattr(event, "account") else event.stripe_account
             )
         except UserStripeConnection.DoesNotExist:
             request_logger.error(
                 "There is no stripe account with ID: %s",
-                (event.account if getattr(event, "account", None) else event.stripe_account,),
+                (event.account if hasattr(event, "account") else event.stripe_account,),
             )
             # If we return error code, stripe will resend the event
             return Response({"message": "OK"})

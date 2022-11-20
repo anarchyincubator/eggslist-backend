@@ -216,10 +216,14 @@ class CreateTransactionAPIView(APIView):
             ).get(slug=product_slug, is_banned=False, is_hidden=False, is_out_of_stock=False)
         except models.ProductArticle.DoesNotExist:
             raise ValidationError(detail={"message": messages.PRODUCT_ARTICLE_DOES_NOT_EXIST})
-        stripe_connection = product.seller.stripe_connection
-        if not stripe_connection:
+        if not hasattr(product.seller, "stripe_connection"):
             raise ValidationError(
                 detail={"message": messages.SELLER_STRIPE_CONNECTION_DOES_NOT_EXIST}
+            )
+        stripe_connection = product.seller.stripe_connection
+        if not stripe_connection.is_onboarding_completed:
+            raise ValidationError(
+                detail={"message": messages.SELLER_NEEDS_STRIPE_ONBOARDING_COMPLETED}
             )
 
         transaction = models.Transaction.objects.create(
