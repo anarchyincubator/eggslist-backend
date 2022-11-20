@@ -41,7 +41,10 @@ class StripeWebhooks(APIView):
             transaction = Transaction.objects.get(id=transaction_id)
         except Transaction.DoesNotExist:
             request_logger.error("There is no transaction with ID: %s", (transaction_id,))
-        if transaction:
+        if transaction and transaction.status not in (
+            Transaction.Status.SUCCESS,
+            Transaction.Status.FAILED,
+        ):
             transaction.customer_email = event.data.object.get("customer_email")
             transaction.status = TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
             transaction.save()
