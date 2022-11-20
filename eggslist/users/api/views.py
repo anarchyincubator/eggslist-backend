@@ -105,7 +105,10 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
     def retrieve(self, request, *args, **kwargs):
         # Stripe verify if onboarding completed
         user = self.request.user
-        if user.stripe_connection and not user.stripe_connection.is_onboarding_completed:
+        if (
+            hasattr(user, "stripe_connection")
+            and not user.stripe_connection.is_onboarding_completed
+        ):
             account = stripe.Account.retrieve(user.stripe_connection.stripe_account)
             if account.details_submitted:
                 user.stripe_connection.is_onboarding_completed = True
