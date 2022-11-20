@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('price', models.DecimalField(decimal_places=2, max_digits=8, verbose_name='price')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
                 ('modified_at', models.DateTimeField(auto_now=True, verbose_name='modified at')),
-                ('status', models.CharField(choices=[('SU', 'Success'), ('FA', 'Failed'), ('PR', 'In progress'), ('CC', 'Checkout completed')], default='PR', max_length=2)),
+                ('status', models.CharField(choices=[('SU', 'Success'), ('FA', 'Failed'), ('PR', 'In progress'), ('CC', 'Checkout completed')], default='PR', max_length=2, verbose_name='status')),
                 ('customer_email', models.CharField(max_length=256, null=True, verbose_name='customer_email')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='transactions', to='store.productarticle', verbose_name='product')),
                 ('seller', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='seller_transactions', to=settings.AUTH_USER_MODEL, verbose_name='seller')),
