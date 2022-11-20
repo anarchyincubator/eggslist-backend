@@ -231,7 +231,7 @@ class CreateTransactionAPIView(APIView):
             product=product,
             price=product.price,
             seller=product.seller,
-            customer=request.user,
+            customer=request.user if request.user.is_authenticated else None,
         )
 
         checkout_details = {
@@ -257,7 +257,7 @@ class CreateTransactionAPIView(APIView):
             "client_reference_id": str(transaction.id),
         }
 
-        if request.user and request.user.email:
+        if request.user.is_authenticated and request.user.email:
             checkout_details["customer_email"] = request.user.email
 
         session = stripe.checkout.Session.create(**checkout_details)
