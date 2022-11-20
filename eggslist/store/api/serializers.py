@@ -42,6 +42,9 @@ class SellerSerializerSmall(serializers.ModelSerializer):
 
 class SellerSerializer(serializers.ModelSerializer):
     location = LocationSerializer(source="zip_code")
+    is_stripe_connected = serializers.BooleanField(
+        source="stripe_connection.is_onboarding_completed", read_only=True
+    )
 
     class Meta:
         model = User
@@ -52,6 +55,7 @@ class SellerSerializer(serializers.ModelSerializer):
             "avatar",
             "phone_number",
             "is_verified_seller",
+            "is_stripe_connected",
             "location",
         )
 
@@ -139,3 +143,22 @@ class ProductArticleSerializer(ProductSerializerBase):
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_MORE_INFO})
         except article_create_rule.SellerNeedsEmailVerification:
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_EMAIL_VERIFICATION})
+
+
+class TransactionListSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(max_digits=8, decimal_places=2)
+    created_at = serializers.DateTimeField(read_only=True)
+
+
+class SellerTransactionListSerializer(TransactionListSerializer):
+    class Meta:
+        model = models.Transaction
+        fields = ("product", "price", "created_at", "status", "customer", "customer_email")
+
+
+class CustomerTransactionListSerializer(TransactionListSerializer):
+    seller = SellerSerializer(read_only=True)
+
+    class Meta:
+        model = models.Transaction
+        fields = ("product", "price", "created_at", "status", "seller")

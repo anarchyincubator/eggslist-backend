@@ -125,21 +125,21 @@ USE_TZ = True
 # Static files
 #########################
 # Storage Bucket Settings
-AWS_ACCESS_KEY_ID = env("DO_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = env("DO_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = env("DO_STORAGE_BUCKET_NAME")
-AWS_DEFAULT_ACL = "public-read"
-AWS_S3_ENDPOINT_URL = "https://nyc3.digitaloceanspaces.com"
-AWS_QUERYSTRING_AUTH = False
-AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-# static settings
-AWS_LOCATION = "backend-static"
-STATIC_URL = "/backend-static/"
-STATICFILES_STORAGE = "app.storage_backends.StaticStorage"
-# public media settings
-PUBLIC_MEDIA_LOCATION = "media"
-MEDIA_URL = "/media/"
-DEFAULT_FILE_STORAGE = "app.storage_backends.PublicMediaStorage"
+# AWS_ACCESS_KEY_ID = env("DO_ACCESS_KEY_ID")
+# AWS_SECRET_ACCESS_KEY = env("DO_SECRET_ACCESS_KEY")
+# AWS_STORAGE_BUCKET_NAME = env("DO_STORAGE_BUCKET_NAME")
+# AWS_DEFAULT_ACL = "public-read"
+# AWS_S3_ENDPOINT_URL = "https://nyc3.digitaloceanspaces.com"
+# AWS_QUERYSTRING_AUTH = False
+# AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+# # static settings
+# AWS_LOCATION = "backend-static"
+# STATIC_URL = "/backend-static/"
+# STATICFILES_STORAGE = "app.storage_backends.StaticStorage"
+# # public media settings
+# PUBLIC_MEDIA_LOCATION = "media"
+# MEDIA_URL = "/media/"
+# DEFAULT_FILE_STORAGE = "app.storage_backends.PublicMediaStorage"
 
 
 ADMIN_URL = "admin/"
@@ -234,3 +234,15 @@ FACEBOOK_AUTH_REDIRECT_URL = "social/facebook/sign-in"
 FACEBOOK_CLIENT_ID = env("FACEBOOK_CLIENT_ID")
 FACEBOOK_SECRET_KEY = env("FACEBOOK_SECRET_KEY")
 FACEBOOK_OAUTH_SCOPE = ["email", "profile"]
+
+######################
+# Stripe Settings
+######################
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_ENDPOINT_SECRET_KEY = env("STRIPE_WEBHOOK_SECRET_KEY", default="")
+STRIPE_COMMISSION_FEE = 1
+STRIPE_SELLERS_ACCOUNT_TYPE = "standard"
+STRIPE_CONNECT_REFRESH_URL = "api/users/connect-stripe"
+STRIPE_CONNECT_RETURN_URL = "stripe-return"
+STRIPE_TRANSACTION_SUCCESS_URL = "success"
+STRIPE_TRANSACTION_CANCEL_URL = "cancel"

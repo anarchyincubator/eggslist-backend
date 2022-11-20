@@ -10,12 +10,12 @@ repos:
   - id: isort
 
 - repo: https://github.com/ambv/black
-  rev: 19.3b0
+  rev: 22.3.0
   hooks:
   - id: black
     exclude: ^.*\b(migrations)\b.*$
 
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.7.7
-  hooks:
-  - id: flake8
+#- repo: https://gitlab.com/pycqa/flake8
+#  rev: 3.7.7
+#  hooks:
+#  - id: flake8

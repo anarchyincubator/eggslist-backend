@@ -1,9 +1,13 @@
 import typing as t
 
+import stripe
+from django.conf import settings
 from django.http import Http404
+from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -198,3 +202,82 @@ class ProductArticleContactButtonAPIView(APIView):
         except models.ProductArticle.DoesNotExist:
             raise ValidationError(detail={"message": messages.PRODUCT_ARTICLE_DOES_NOT_EXIST})
         return Response(status=200)
+
+
+class CreateTransactionAPIView(APIView):
+    lookup_field = "slug"
+    permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        product_slug = self.kwargs[self.lookup_field]
+        try:
+            product = models.ProductArticle.objects.select_related(
+                "seller__stripe_connection"
+            ).get(slug=product_slug, is_banned=False, is_hidden=False, is_out_of_stock=False)
+        except models.ProductArticle.DoesNotExist:
+            raise ValidationError(detail={"message": messages.PRODUCT_ARTICLE_DOES_NOT_EXIST})
+        stripe_connection = product.seller.stripe_connection
+        if not stripe_connection:
+            raise ValidationError(
+                detail={"message": messages.SELLER_STRIPE_CONNECTION_DOES_NOT_EXIST}
+            )
+
+        transaction = models.Transaction.objects.create(
+            stripe_connection=stripe_connection,
+            product=product,
+            price=product.price,
+            seller=product.seller,
+            customer=request.user,
+        )
+
+        checkout_details = {
+            "line_items": [
+                {
+                    "quantity": 1,
+                    "price_data": {
+                        "currency": "USD",
+                        "product_data": {
+                            "name": product.title,
+                            "description": product.description,
+                            "images": [product.image.url],
+                        },
+                        "unit_amount": int(float(product.price) * 100),  # Cents
+                    },
+                }
+            ],
+            "mode": "payment",
+            "success_url": f"{settings.SITE_URL}/{settings.STRIPE_TRANSACTION_SUCCESS_URL}",
+            "cancel_url": f"{settings.SITE_URL}/{settings.STRIPE_TRANSACTION_CANCEL_URL}",
+            "payment_intent_data": {"application_fee_amount": settings.STRIPE_COMMISSION_FEE},
+            "stripe_account": stripe_connection.stripe_account,
+            "client_reference_id": str(transaction.id),
+        }
+
+        if request.user and request.user.email:
+            checkout_details["customer_email"] = request.user.email
+
+        session = stripe.checkout.Session.create(**checkout_details)
+
+        return redirect(session.url)
+
+
+class SellerTransactionsListAPIView(generics.ListAPIView):
+    serializer_class = serializers.SellerTransactionListSerializer
+
+    def get_queryset(self):
+        return (
+            models.Transaction.objects.filter(seller=self.request.user)
+            .prefetch_related("product")
+            .order_by("-modified_at")
+        )
+
+
+class CustomerTransactionListAPIView(generics.ListAPIView):
+    serializer_class = serializers.CustomerTransactionListSerializer
+
+    def get_queryset(self):
+        return (
+            models.Transaction.objects.filter(customer=self.request.user)
+            .prefetch_related("seller")
+            .order_by("-modified_at")
+        )

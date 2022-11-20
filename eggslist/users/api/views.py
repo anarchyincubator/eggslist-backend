@@ -1,7 +1,11 @@
 import typing as t
 
+import stripe
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.db.utils import IntegrityError
 from django.http import Http404
+from django.shortcuts import redirect
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     CreateAPIView,
@@ -17,6 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users import models
+from eggslist.users.permissions import IsVerifiedSeller
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, JWTMixin
@@ -85,9 +90,27 @@ class SignOutAPIView(APIView):
         return Response(status=200)
 
 
+class UserSmallProfileView(RetrieveUpdateAPIView):
+    serializer_class = serializers.UserSerializerSmall
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        return self.request.user
+
+
 class UserProfileAPIView(RetrieveUpdateAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
+
+    def retrieve(self, request, *args, **kwargs):
+        # Stripe verify if onboarding completed
+        user = self.request.user
+        if user.stripe_connection and not user.stripe_connection.is_onboarding_completed:
+            account = stripe.Account.retrieve(user.stripe_connection.stripe_account)
+            if account.details_submitted:
+                user.stripe_connection.is_onboarding_completed = True
+                user.save()
+        return super().retrieve(request, *args, **kwargs)
 
     def get_object(self):
         return self.request.user
@@ -270,3 +293,56 @@ class FavoriteUsersListAPIView(ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(followers__user=self.request.user)
+
+
+class ConnectStripeCreateAPIView(APIView):
+    """
+    Create Stripe connection with user account
+    """
+
+    permission_classes = (IsAuthenticated, IsVerifiedSeller)
+
+    def create_stripe_account(self, request):
+        account = stripe.Account.create(
+            type=settings.STRIPE_SELLERS_ACCOUNT_TYPE,
+            email=request.user.email,
+            metadata={"user.id": request.user.id},
+        )
+        try:
+            user_stripe_connection_model = models.UserStripeConnection.objects.create(
+                user=request.user, stripe_account=account.stripe_id
+            )
+        except IntegrityError:
+            models.UserStripeConnection.objects.filter(user=request.user).delete()
+            user_stripe_connection_model = models.UserStripeConnection.objects.create(
+                user=request.user, stripe_account=account.stripe_id
+            )
+        return account, user_stripe_connection_model
+
+    def get(self, request, *args, **kwargs):
+        connect_link = None
+        try:
+            user_stripe_connection_model = models.UserStripeConnection.objects.get(
+                user=request.user,
+            )
+        except models.UserStripeConnection.DoesNotExist:
+            account, user_stripe_connection_model = self.create_stripe_account(request)
+        try:
+            connect_link = stripe.AccountLink.create(
+                account=user_stripe_connection_model.stripe_account,
+                refresh_url=f"{settings.SITE_URL}/{settings.STRIPE_CONNECT_REFRESH_URL}",
+                return_url=f"{settings.SITE_URL}/{settings.STRIPE_CONNECT_RETURN_URL}",
+                type="account_onboarding",
+            )
+        except stripe.error.InvalidRequestError as e:
+            if "No such account" in e.user_message:
+                account, user_stripe_connection_model = self.create_stripe_account(request)
+                connect_link = stripe.AccountLink.create(
+                    account=user_stripe_connection_model.stripe_account,
+                    refresh_url=f"{settings.SITE_URL}/{settings.STRIPE_CONNECT_REFRESH_URL}",
+                    return_url=f"{settings.SITE_URL}/{settings.STRIPE_CONNECT_RETURN_URL}",
+                    type="account_onboarding",
+                )
+        if connect_link is None:
+            raise ConnectionError("There is no connection link")
+        return redirect(connect_link.url)
