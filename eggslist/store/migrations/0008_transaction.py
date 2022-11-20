@@ -10,6 +10,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('store', '0007_create_position_values'),
+        ('users', '0010_userstripeconnection'),
     ]
 
     operations = [
