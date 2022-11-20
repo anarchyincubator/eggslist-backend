@@ -129,3 +129,28 @@ class UserIPLocationLog(models.Model):
     determined_city = models.CharField(
         verbose_name=_("determined city"), max_length=128, null=True
     )
+
+
+class UserStripeConnection(models.Model):
+    user = models.OneToOneField(
+        verbose_name=_("user"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="stripe_connection",
+    )
+    stripe_account = models.CharField(
+        max_length=80, verbose_name=_("stripe account"), primary_key=True
+    )
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True)
+    is_onboarding_completed = models.BooleanField(
+        verbose_name=_("is onboarding completed"), default=False
+    )
+
+    class Meta:
+        verbose_name = _("user stripe connection")
+        verbose_name_plural = _("user stripe connections")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return self.stripe_account

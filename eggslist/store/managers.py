@@ -41,23 +41,30 @@ class ProductArticlManager(Manager):
 
     def get_for(self, user):
         return self.filter(seller=user, is_hidden=False).select_related(
-            "subcategory", "seller__zip_code__city__state"
+            "subcategory",
+            "seller__zip_code__city__state",
+            "seller__stripe_connection",
         )
 
     def get_for_other(self, user, other_user_id):
         qs = self.filter(seller_id=other_user_id, is_hidden=False).select_related(
-            "subcategory", "seller"
+            "subcategory",
+            "seller__stripe_connection",
         )
         return self._annotate_with_favorites(qs, user=user)
 
     def get_hidden_for(self, user):
         return self.filter(seller=user, is_hidden=True).select_related(
-            "subcategory", "seller__zip_code__city__state"
+            "subcategory",
+            "seller__zip_code__city__state",
+            "seller__stripe_connection",
         )
 
     def get_best_similar_for(self, instance, user, user_id) -> QuerySet:
         city, lookup_radius, is_undefined = UserLocationStorage.get_user_location(user_id=user_id)
-        qs = self.select_related("seller__zip_code__city__state", "subcategory")
+        qs = self.select_related(
+            "seller__zip_code__city__state", "seller__stripe_connection", "subcategory"
+        )
         qs = self._annotate_with_distance(qs, city)
         qs = self._annotate_with_favorites(qs, user=user)
         return qs.filter(
@@ -69,18 +76,24 @@ class ProductArticlManager(Manager):
 
     def get_from_the_same_farm_for(self, instance, user, user_id) -> QuerySet:
         city, lookup_radius, is_undefined = UserLocationStorage.get_user_location(user_id=user_id)
-        qs = self.select_related("seller__zip_code__city__state", "subcategory")
+        qs = self.select_related(
+            "seller__zip_code__city__state", "seller__stripe_connection", "subcategory"
+        )
         qs = self._annotate_with_distance(qs, city)
         qs = self._annotate_with_favorites(qs, user=user)
         return qs.filter(~Q(slug=instance.slug), is_hidden=False, seller=instance.seller)[:4]
 
     def get_all_catalog_no_hidden(self, user, user_id) -> QuerySet:
         city, lookup_radius, is_undefined = UserLocationStorage.get_user_location(user_id=user_id)
-        qs = self.select_related("seller__zip_code__city__state", "subcategory")
+        qs = self.select_related(
+            "seller__zip_code__city__state", "seller__stripe_connection", "subcategory"
+        )
         qs = self._annotate_with_distance(qs, city=city)
         qs = self._annotate_with_favorites(qs, user=user)
         return qs.filter(is_hidden=False, distance__lte=D(mi=int(lookup_radius)))
 
     def get_all_catalog_with_hidden(self, user, user_id):
-        qs = self.select_related("seller__zip_code__city__state", "subcategory")
+        qs = self.select_related(
+            "seller__zip_code__city__state", "seller__stripe_connection", "subcategory"
+        )
         return self._annotate_with_favorites(qs, user=user)

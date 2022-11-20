@@ -43,3 +43,23 @@ class ProductArticleAdmin(ImageAdmin):
 @admin.register(models.UserViewTimestamp)
 class ProductUserView(admin.ModelAdmin):
     list_display = ("user", "timestamp", "product")
+
+
+@admin.register(models.Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "status",
+        "customer",
+        "customer_email",
+        "product",
+        "price",
+        "seller",
+        "created_at",
+        "modified_at",
+    )
+    readonly_fields = list_display + ("stripe_connection",)
+    search_fields = ("product", "price", "seller", "customer", "customer_email")
+    list_filter = (
+        "status",
+        "created_at",
+    )

@@ -15,3 +15,5 @@ ONLY_SELLER_CAN_UPDATE = _(
 ONLY_SELLER_CAN_VIEW = _("Only product seller can view their hidden products")
 
 PRODUCT_ARTICLE_DOES_NOT_EXIST = _("There is no such Product Article in the database.")
+
+SELLER_STRIPE_CONNECTION_DOES_NOT_EXIST = _("There is no Stripe Connection for this Seller.")
