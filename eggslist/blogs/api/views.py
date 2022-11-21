@@ -51,3 +51,11 @@ class BlogListAPIView(generics.ListAPIView):
     filterset_class = BlogFilter
     filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ("title", "category__name")
+
+
+class BlogRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = serializers.BlogSerializer
+    queryset = models.BlogArticle.objects.select_related(
+        "category", "author__zip_code__city__state"
+    )
+    lookup_field = "slug"
