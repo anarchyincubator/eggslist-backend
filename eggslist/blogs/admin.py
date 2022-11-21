@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django_summernote.admin import SummernoteModelAdmin
 
 from eggslist.blogs import models
 from eggslist.utils.admin import ImageAdmin
@@ -11,7 +12,8 @@ class BlogCategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.BlogArticle)
-class BlogArticleAdmin(ImageAdmin):
+class BlogArticleAdmin(SummernoteModelAdmin, ImageAdmin):
+    summernote_fields = ("body",)
     list_display = ("title", "category")
     list_display_images = ("image",)
     list_select_related = ("category",)
