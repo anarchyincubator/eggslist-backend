@@ -57,8 +57,8 @@ class TransactionAdmin(admin.ModelAdmin):
         "created_at",
         "modified_at",
     )
-    readonly_fields = list_display + ("stripe_connection",)
-    search_fields = ("product", "price", "seller", "customer", "customer_email")
+    readonly_fields = list_display + ("stripe_connection", "payment_intent")
+    search_fields = ("product", "price", "seller", "customer", "customer_email", "payment_intent")
     list_filter = (
         "status",
         "created_at",

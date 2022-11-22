@@ -255,6 +255,7 @@ class CreateTransactionAPIView(APIView):
             "payment_intent_data": {"application_fee_amount": settings.STRIPE_COMMISSION_FEE},
             "stripe_account": stripe_connection.stripe_account,
             "client_reference_id": str(transaction.id),
+            "metadata": {"transaction_id": str(transaction.id)},
         }
 
         if request.user.is_authenticated and request.user.email:

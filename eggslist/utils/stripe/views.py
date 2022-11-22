@@ -11,10 +11,16 @@ from rest_framework.views import APIView
 from eggslist.store.models import Transaction
 from eggslist.users.models import UserStripeConnection
 
-TRANSACTION_EVENT_TO_STATUS = {
+SESSION_TRANSACTION_EVENT_TO_STATUS = {
     "checkout.session.completed": Transaction.Status.CHECKOUT_COMPLETED,
     "checkout.session.async_payment_succeeded": Transaction.Status.SUCCESS,
     "checkout.session.async_payment_failed": Transaction.Status.FAILED,
+}
+
+PAYMENT_INTENT_TRANSACTION_EVENT_TO_STATUS = {
+    "payment_intent.canceled": Transaction.Status.FAILED,
+    "payment_intent.succeeded": Transaction.Status.SUCCESS,
+    "payment_intent.payment_failed": Transaction.Status.FAILED,
 }
 
 
@@ -34,20 +40,35 @@ class StripeWebhooks(APIView):
             stripe_connection.is_onboarding_completed = True
             stripe_connection.save()
 
-    def transaction_events(self, event: stripe.Event):
+    def session_transaction_events(self, event: stripe.Event):
         transaction_id = event.data.object.get("client_reference_id")
-        transaction = None
         try:
-            transaction = Transaction.objects.get(id=transaction_id)
-        except Transaction.DoesNotExist:
+            transaction = Transaction.objects.get(id=int(transaction_id))
+        except (Transaction.DoesNotExist, TypeError):
             request_logger.error("There is no transaction with ID: %s", (transaction_id,))
-        if transaction and transaction.status not in (
-            Transaction.Status.SUCCESS,
-            Transaction.Status.FAILED,
-        ):
-            transaction.customer_email = event.data.object.get("customer_email")
-            transaction.status = TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
-            transaction.save()
+            return
+        transaction.payment_intent = event.data.object.get("payment_intent")
+        transaction.customer_email = event.data.object.get("customer_email")
+        if event.data.object.get("payment_status") == "paid":
+            transaction.status = Transaction.Status.SUCCESS
+        if transaction.status != Transaction.Status.SUCCESS:
+            transaction.status = SESSION_TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
+        transaction.save()
+
+    def payment_intent_transaction_events(self, event: stripe.Event):
+        transaction_payment_intent = event.data.object.get("id")
+        try:
+            transaction = Transaction.objects.get(payment_intent=transaction_payment_intent)
+        except Transaction.DoesNotExist:
+            request_logger.error(
+                "There is no transaction with payment intent: %s", transaction_payment_intent
+            )
+            return
+        if not transaction.customer_email and event.data.object.get("receipt_email"):
+            transaction.customer_email = event.data.object.get("receipt_email")
+        if transaction.status != Transaction.Status.SUCCESS:
+            transaction.status = PAYMENT_INTENT_TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
+        transaction.save()
 
     def post(self, request, *args, **kwargs):
         event = stripe.Event.construct_from(request.data, stripe.api_key)
@@ -66,8 +87,11 @@ class StripeWebhooks(APIView):
         if event.get("type") == "account.updated":
             self.account_updated_event(event, stripe_connection)
 
-        if event.get("type") in TRANSACTION_EVENT_TO_STATUS.keys():
-            self.transaction_events(event)
+        if event.get("type") in SESSION_TRANSACTION_EVENT_TO_STATUS.keys():
+            self.session_transaction_events(event)
+
+        if event.get("type") in PAYMENT_INTENT_TRANSACTION_EVENT_TO_STATUS.keys():
+            self.payment_intent_transaction_events(event)
 
         return Response({"message": "OK"})
 

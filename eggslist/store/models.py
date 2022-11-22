@@ -124,6 +124,9 @@ class Transaction(models.Model):
         on_delete=models.DO_NOTHING,
         related_name="transactions",
     )
+    payment_intent = models.CharField(
+        max_length=80, verbose_name=_("payment intent"), null=True, default=None
+    )
     product = models.ForeignKey(
         verbose_name=_("product"),
         to="ProductArticle",
