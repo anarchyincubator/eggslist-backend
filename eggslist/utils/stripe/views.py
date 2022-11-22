@@ -62,6 +62,7 @@ class StripeWebhooks(APIView):
             )
             # If we return error code, stripe will resend the event
             return Response({"message": "OK"})
+        request_logger.info("Incoming Stripe webhook event with type: %s", event.get("type"))
         if event.get("type") == "account.updated":
             self.account_updated_event(event, stripe_connection)
 
