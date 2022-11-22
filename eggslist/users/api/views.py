@@ -24,6 +24,7 @@ from eggslist.users import models
 from eggslist.users.permissions import IsVerifiedSeller
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
+from eggslist.utils.emailing import send_mailing
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, JWTMixin
 from . import messages, serializers
 
@@ -113,6 +114,11 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
             if account.details_submitted:
                 user.stripe_connection.is_onboarding_completed = True
                 user.stripe_connection.save()
+                send_mailing(
+                    subject="Stripe",
+                    mail_template="emails/stripe_connected.html",
+                    users=[user],
+                )
         return super().retrieve(request, *args, **kwargs)
 
     def get_object(self):

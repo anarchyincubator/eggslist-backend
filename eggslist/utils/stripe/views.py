@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 from eggslist.store.models import Transaction
 from eggslist.users.models import UserStripeConnection
+from eggslist.utils.emailing import send_mailing
 
 SESSION_TRANSACTION_EVENT_TO_STATUS = {
     "checkout.session.completed": Transaction.Status.CHECKOUT_COMPLETED,
@@ -40,6 +41,11 @@ class StripeWebhooks(APIView):
         ):
             stripe_connection.is_onboarding_completed = True
             stripe_connection.save()
+            send_mailing(
+                subject="Stripe",
+                mail_template="emails/stripe_connected.html",
+                users=[stripe_connection.user],
+            )
 
     def session_transaction_events(self, event: stripe.Event):
         transaction_id = event.data.object.get("client_reference_id")
@@ -49,7 +55,13 @@ class StripeWebhooks(APIView):
             request_logger.error("There is no transaction with ID: %s", (transaction_id,))
             return
         transaction.payment_intent = event.data.object.get("payment_intent")
-        transaction.customer_email = event.data.object.get("customer_email")
+        if not transaction.customer_email:
+            if event.data.object.get("customer_email"):
+                transaction.customer_email = event.data.object.get("customer_email")
+            else:
+                transaction.customer_email = event.data.object.get("customer_details", {}).get(
+                    "email"
+                )
         if event.data.object.get("payment_status") == "paid":
             transaction.status = Transaction.Status.SUCCESS
         if transaction.status != Transaction.Status.SUCCESS:
