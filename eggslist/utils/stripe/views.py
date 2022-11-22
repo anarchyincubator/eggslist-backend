@@ -15,6 +15,7 @@ SESSION_TRANSACTION_EVENT_TO_STATUS = {
     "checkout.session.completed": Transaction.Status.CHECKOUT_COMPLETED,
     "checkout.session.async_payment_succeeded": Transaction.Status.SUCCESS,
     "checkout.session.async_payment_failed": Transaction.Status.FAILED,
+    "checkout.session.expired": Transaction.Status.FAILED,
 }
 
 PAYMENT_INTENT_TRANSACTION_EVENT_TO_STATUS = {
