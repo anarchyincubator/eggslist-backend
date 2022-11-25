@@ -1,7 +1,5 @@
 import typing as t
 
-import stripe
-from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,6 +12,7 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
+from eggslist.utils.stripe import api as stripe_api
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
@@ -28,7 +27,7 @@ class CategoryListAPIView(generics.ListAPIView):
 
 class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
-    Get Product Articles. Use filters as query paramerters.
+    Get Product Articles. Use filters as query parameters.
     Find query parameters information below.
     API method returns the query already filtered according to user location
     if it is provided in Cookie Session
@@ -135,7 +134,7 @@ class ProductArticleCreateAPIView(AnonymousUserIdAPIMixin, generics.CreateAPIVie
 
 class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpdateDestroyAPIView):
     """
-    Return a single product article from all of the locations.
+    Return a single product article from all the locations.
     Return 404 if article is hidden and current user is not an
     owner of the product.
     """
@@ -225,7 +224,6 @@ class CreateTransactionAPIView(APIView):
             raise ValidationError(
                 detail={"message": messages.SELLER_NEEDS_STRIPE_ONBOARDING_COMPLETED}
             )
-
         transaction = models.Transaction.objects.create(
             stripe_connection=stripe_connection,
             product=product,
@@ -234,36 +232,10 @@ class CreateTransactionAPIView(APIView):
             customer=request.user if request.user.is_authenticated else None,
         )
 
-        checkout_details = {
-            "line_items": [
-                {
-                    "quantity": 1,
-                    "price_data": {
-                        "currency": "USD",
-                        "product_data": {
-                            "name": product.title,
-                            "description": product.description,
-                            "images": [product.image.url],
-                        },
-                        "unit_amount": int(float(product.price) * 100),  # Cents
-                    },
-                }
-            ],
-            "mode": "payment",
-            "success_url": f"{settings.SITE_URL}/{settings.STRIPE_TRANSACTION_SUCCESS_URL}",
-            "cancel_url": f"{settings.SITE_URL}/{settings.STRIPE_TRANSACTION_CANCEL_URL}",
-            "payment_intent_data": {"application_fee_amount": settings.STRIPE_COMMISSION_FEE},
-            "stripe_account": stripe_connection.stripe_account,
-            "client_reference_id": str(transaction.id),
-            "metadata": {"transaction_id": str(transaction.id)},
-        }
-
-        if request.user.is_authenticated and request.user.email:
-            checkout_details["customer_email"] = request.user.email
-
-        session = stripe.checkout.Session.create(**checkout_details)
-
-        return redirect(session.url)
+        purchase_url = stripe_api.create_purchase_url(
+            request.user, stripe_connection, product, transaction.id
+        )
+        return redirect(purchase_url)
 
 
 class SellerTransactionsListAPIView(generics.ListAPIView):
