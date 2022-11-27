@@ -1,5 +1,4 @@
 import typing as t
-from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
