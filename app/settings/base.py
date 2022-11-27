@@ -126,21 +126,21 @@ USE_TZ = True
 # Static files
 #########################
 # Storage Bucket Settings
-# AWS_ACCESS_KEY_ID = env("DO_ACCESS_KEY_ID")
-# AWS_SECRET_ACCESS_KEY = env("DO_SECRET_ACCESS_KEY")
-# AWS_STORAGE_BUCKET_NAME = env("DO_STORAGE_BUCKET_NAME")
-# AWS_DEFAULT_ACL = "public-read"
-# AWS_S3_ENDPOINT_URL = "https://nyc3.digitaloceanspaces.com"
-# AWS_QUERYSTRING_AUTH = False
-# AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-# # static settings
-# AWS_LOCATION = "backend-static"
-# STATIC_URL = "/backend-static/"
-# STATICFILES_STORAGE = "app.storage_backends.StaticStorage"
-# # public media settings
-# PUBLIC_MEDIA_LOCATION = "media"
-# MEDIA_URL = "/media/"
-# DEFAULT_FILE_STORAGE = "app.storage_backends.PublicMediaStorage"
+AWS_ACCESS_KEY_ID = env("DO_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("DO_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("DO_STORAGE_BUCKET_NAME")
+AWS_DEFAULT_ACL = "public-read"
+AWS_S3_ENDPOINT_URL = "https://nyc3.digitaloceanspaces.com"
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+# static settings
+AWS_LOCATION = "backend-static"
+STATIC_URL = "/backend-static/"
+STATICFILES_STORAGE = "app.storage_backends.StaticStorage"
+# public media settings
+PUBLIC_MEDIA_LOCATION = "media"
+MEDIA_URL = "/media/"
+DEFAULT_FILE_STORAGE = "app.storage_backends.PublicMediaStorage"
 
 
 ADMIN_URL = "admin/"
@@ -226,7 +226,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 USER_LOCATION_COOKIE_NAME = "user_location_id"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
-# SESSION_COOKIE_DOMAIN = ".eggslist.com"
+SESSION_COOKIE_DOMAIN = ".eggslist.com"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,
 }
