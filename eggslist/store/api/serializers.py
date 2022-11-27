@@ -1,4 +1,5 @@
 import typing as t
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -145,15 +146,46 @@ class ProductArticleSerializer(ProductSerializerBase):
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_EMAIL_VERIFICATION})
 
 
+class TransactionProduct(serializers.ModelSerializer):
+    slug = serializers.CharField(read_only=True)
+    price = serializers.DecimalField(max_digits=8, decimal_places=2)
+
+    class Meta:
+        model = models.ProductArticle
+        fields = ("title", "image", "slug", "price")
+
+
 class TransactionListSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=8, decimal_places=2)
+    application_fee = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
+    product = TransactionProduct(required=False)
+    status = serializers.CharField(source="get_status_display")
+
+    def get_application_fee(self, obj):
+        return "{0:.2f}".format(obj.application_fee / 100)
 
 
 class SellerTransactionListSerializer(TransactionListSerializer):
     class Meta:
         model = models.Transaction
-        fields = ("product", "price", "created_at", "status", "customer", "customer_email")
+        fields = (
+            "product",
+            "price",
+            "application_fee",
+            "created_at",
+            "status",
+            "customer",
+            "customer_email",
+        )
+
+
+class SellerTransactionListTotalSalesSerializer(serializers.Serializer):
+    total_sales = serializers.DecimalField(max_digits=20, decimal_places=2, default=0)
+    transaction_list = serializers.DictField(allow_empty=True)
+
+    class Meta:
+        fields = ("total_sales", "transaction_list")
 
 
 class CustomerTransactionListSerializer(TransactionListSerializer):

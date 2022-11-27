@@ -135,6 +135,7 @@ class Transaction(models.Model):
     )
 
     price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2)
+    application_fee = models.IntegerField(verbose_name=_("application fee"), default=0)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True)
     status = models.CharField(

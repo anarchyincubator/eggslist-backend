@@ -1,5 +1,7 @@
 import typing as t
 
+from django.conf import settings
+from django.db.models import DecimalField, ExpressionWrapper, Sum, Value
 from django.http import Http404
 from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,6 +14,7 @@ from rest_framework.views import APIView
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
+from eggslist.users.permissions import IsVerifiedSeller
 from eggslist.utils.stripe import api as stripe_api
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
@@ -228,6 +231,7 @@ class CreateTransactionAPIView(APIView):
             stripe_connection=stripe_connection,
             product=product,
             price=product.price,
+            application_fee=settings.STRIPE_COMMISSION_FEE,
             seller=product.seller,
             customer=request.user if request.user.is_authenticated else None,
         )
@@ -238,8 +242,15 @@ class CreateTransactionAPIView(APIView):
         return redirect(purchase_url)
 
 
-class SellerTransactionsListAPIView(generics.ListAPIView):
+class SellerTransactionsListAPIView(generics.GenericAPIView):
+    permissions = (IsVerifiedSeller,)
     serializer_class = serializers.SellerTransactionListSerializer
+    response_serializer_class = serializers.SellerTransactionListTotalSalesSerializer
+    pagination_class = PageNumberPaginationWithCount
+    pagination_class.page_size = 20
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     def get_queryset(self):
         return (
@@ -248,13 +259,42 @@ class SellerTransactionsListAPIView(generics.ListAPIView):
             .order_by("-modified_at")
         )
 
+    def get_total_sales_queryset(self):
+        return models.Transaction.objects.filter(
+            seller=self.request.user, status=models.Transaction.Status.SUCCESS
+        ).aggregate(
+            total_sales=ExpressionWrapper(
+                Sum("price") - (Sum("application_fee") / Value(100.0)),
+                output_field=DecimalField(max_digits=8, decimal_places=2),
+            )
+        )
+
+    def list(self, request, *args, **kwargs):
+        list_queryset = self.filter_queryset(self.get_queryset())
+        total_sales_queryset = self.get_total_sales_queryset()
+        # Default value if seller has no transactions
+        if total_sales_queryset.get("total_sales", "") is None:
+            total_sales_queryset["total_sales"] = 0
+
+        page = self.paginate_queryset(list_queryset)
+        serializer = self.get_serializer(page, many=True)
+
+        list_data = self.paginator.get_paginated_dict(serializer.data)
+        return Response(
+            self.response_serializer_class(
+                total_sales_queryset | {"transaction_list": list_data}
+            ).data
+        )
+
 
 class CustomerTransactionListAPIView(generics.ListAPIView):
     serializer_class = serializers.CustomerTransactionListSerializer
+    pagination_class = PageNumberPaginationWithCount
+    pagination_class.page_size = 20
 
     def get_queryset(self):
         return (
             models.Transaction.objects.filter(customer=self.request.user)
-            .prefetch_related("seller")
+            .prefetch_related("seller", "product")
             .order_by("-modified_at")
         )
