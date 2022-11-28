@@ -80,7 +80,7 @@ def create_purchase_url(
         "cancel_url": "{site_url}/catalog/product?slug={slug}".format(
             site_url=settings.SITE_URL, slug=product.slug
         ),
-        "payment_intent_data": {"application_fee_amount": settings.STRIPE_COMMISSION_FEE},
+        "payment_intent_data": {"application_fee_amount": settings.STRIPE_APPLICATION_FEE},
         "stripe_account": seller_connection.stripe_account,
         "client_reference_id": str(transaction_id),
         "metadata": {"transaction_id": str(transaction_id)},

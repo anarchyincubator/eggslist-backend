@@ -231,7 +231,7 @@ class CreateTransactionAPIView(APIView):
             stripe_connection=stripe_connection,
             product=product,
             price=product.price,
-            application_fee=settings.STRIPE_COMMISSION_FEE,
+            application_fee=settings.STRIPE_APPLICATION_FEE,
             seller=product.seller,
             customer=request.user if request.user.is_authenticated else None,
         )
