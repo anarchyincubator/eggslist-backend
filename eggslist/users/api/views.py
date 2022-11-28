@@ -2,6 +2,7 @@ import typing as t
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.http import Http404
+from django.shortcuts import redirect
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     CreateAPIView,
@@ -17,8 +18,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from eggslist.site_configuration.models import LocationCity
 from eggslist.users import models
+from eggslist.users.permissions import IsVerifiedSeller
 from eggslist.users.user_code_verify import PasswordResetCodeVerification, UserEmailVerification
 from eggslist.users.user_location_storage import UserLocationStorage
+from eggslist.utils.emailing import send_mailing
+from eggslist.utils.stripe import api as stripe_api
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin, JWTMixin
 from . import messages, serializers
 
@@ -85,9 +89,34 @@ class SignOutAPIView(APIView):
         return Response(status=200)
 
 
+class UserSmallProfileView(RetrieveUpdateAPIView):
+    serializer_class = serializers.UserSerializerSmall
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        return self.request.user
+
+
 class UserProfileAPIView(RetrieveUpdateAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
+
+    def retrieve(self, request, *args, **kwargs):
+        # Verify if Stripe onboarding completed
+        user = self.request.user
+        if (
+            hasattr(user, "stripe_connection")
+            and not user.stripe_connection.is_onboarding_completed
+        ):
+            if stripe_api.is_onboarding_completed(user.stripe_connection):
+                user.stripe_connection.is_onboarding_completed = True
+                user.stripe_connection.save()
+                send_mailing(
+                    subject="Stripe",
+                    mail_template="emails/stripe_connected.html",
+                    users=[user],
+                )
+        return super().retrieve(request, *args, **kwargs)
 
     def get_object(self):
         return self.request.user
@@ -270,3 +299,22 @@ class FavoriteUsersListAPIView(ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(followers__user=self.request.user)
+
+
+class ConnectStripeCreateAPIView(APIView):
+    """
+    Create Stripe connection with user account
+    """
+
+    permission_classes = (IsAuthenticated, IsVerifiedSeller)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_stripe_connection = models.UserStripeConnection.objects.get(
+                user=request.user,
+            )
+        except models.UserStripeConnection.DoesNotExist:
+            account, user_stripe_connection = stripe_api.create_account(request.user)
+
+        connect_url = stripe_api.create_connect_url(user_stripe_connection)
+        return redirect(connect_url)

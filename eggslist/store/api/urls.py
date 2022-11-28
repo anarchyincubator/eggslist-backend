@@ -15,6 +15,9 @@ urlpatterns = [
     path("products/my-hidden", views.MyHiddenProductArticlesListAPIView.as_view(), name="product-my-hidden"),
     path("products/create", views.ProductArticleCreateAPIView.as_view(), name="product-create"),
     path("products/<str:slug>", views.ProductArticleDetailAPIView().as_view(), name="product-detail"),
-    path("products/<str:slug>/contact", views.ProductArticleContactButtonAPIView.as_view(), name="proudct-contact")
+    path("products/<str:slug>/contact", views.ProductArticleContactButtonAPIView.as_view(), name="proudct-contact"),
+    path("products/<str:slug>/purchase", views.CreateTransactionAPIView.as_view(), name="product-purchase"),
+    path("transactions/customer", views.CustomerTransactionListAPIView.as_view(), name="customer-transactions"),
+    path("transactions/seller", views.SellerTransactionsListAPIView.as_view(), name="seller-transactions"),
 ]
 # fmt: on

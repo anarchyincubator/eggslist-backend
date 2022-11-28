@@ -8,7 +8,7 @@ from app import constants
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("api/", include("eggslist.urls")),
+    path("api/", include("eggslist.urls", namespace="eggslist")),
     path("summernote/", include("django_summernote.urls")),
 ]
 

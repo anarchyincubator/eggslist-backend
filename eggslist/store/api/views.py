@@ -1,15 +1,21 @@
 import typing as t
 
+from django.conf import settings
+from django.db.models import DecimalField, ExpressionWrapper, Sum, Value
 from django.http import Http404
+from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from eggslist.store import models
 from eggslist.store.api import messages, serializers
 from eggslist.store.filters import ProductFilter
+from eggslist.users.permissions import IsVerifiedSeller
+from eggslist.utils.stripe import api as stripe_api
 from eggslist.utils.views.mixins import AnonymousUserIdAPIMixin
 from eggslist.utils.views.pagination import PageNumberPaginationWithCount
 
@@ -24,7 +30,7 @@ class CategoryListAPIView(generics.ListAPIView):
 
 class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
-    Get Product Articles. Use filters as query paramerters.
+    Get Product Articles. Use filters as query parameters.
     Find query parameters information below.
     API method returns the query already filtered according to user location
     if it is provided in Cookie Session
@@ -131,7 +137,7 @@ class ProductArticleCreateAPIView(AnonymousUserIdAPIMixin, generics.CreateAPIVie
 
 class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpdateDestroyAPIView):
     """
-    Return a single product article from all of the locations.
+    Return a single product article from all the locations.
     Return 404 if article is hidden and current user is not an
     owner of the product.
     """
@@ -198,3 +204,97 @@ class ProductArticleContactButtonAPIView(APIView):
         except models.ProductArticle.DoesNotExist:
             raise ValidationError(detail={"message": messages.PRODUCT_ARTICLE_DOES_NOT_EXIST})
         return Response(status=200)
+
+
+class CreateTransactionAPIView(APIView):
+    lookup_field = "slug"
+    permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        product_slug = self.kwargs[self.lookup_field]
+        try:
+            product = models.ProductArticle.objects.select_related(
+                "seller__stripe_connection"
+            ).get(slug=product_slug, is_banned=False, is_hidden=False, is_out_of_stock=False)
+        except models.ProductArticle.DoesNotExist:
+            raise ValidationError(detail={"message": messages.PRODUCT_ARTICLE_DOES_NOT_EXIST})
+        if not hasattr(product.seller, "stripe_connection"):
+            raise ValidationError(
+                detail={"message": messages.SELLER_STRIPE_CONNECTION_DOES_NOT_EXIST}
+            )
+        stripe_connection = product.seller.stripe_connection
+        if not stripe_connection.is_onboarding_completed:
+            raise ValidationError(
+                detail={"message": messages.SELLER_NEEDS_STRIPE_ONBOARDING_COMPLETED}
+            )
+        transaction = models.Transaction.objects.create(
+            stripe_connection=stripe_connection,
+            product=product,
+            price=product.price,
+            application_fee=settings.STRIPE_APPLICATION_FEE,
+            seller=product.seller,
+            customer=request.user if request.user.is_authenticated else None,
+        )
+
+        purchase_url = stripe_api.create_purchase_url(
+            request.user, stripe_connection, product, transaction.id
+        )
+        return redirect(purchase_url)
+
+
+class SellerTransactionsListAPIView(generics.GenericAPIView):
+    permissions = (IsVerifiedSeller,)
+    serializer_class = serializers.SellerTransactionListSerializer
+    response_serializer_class = serializers.SellerTransactionListTotalSalesSerializer
+    pagination_class = PageNumberPaginationWithCount
+    pagination_class.page_size = 20
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return (
+            models.Transaction.objects.filter(seller=self.request.user)
+            .prefetch_related("product")
+            .order_by("-modified_at")
+        )
+
+    def get_total_sales_queryset(self):
+        return models.Transaction.objects.filter(
+            seller=self.request.user, status=models.Transaction.Status.SUCCESS
+        ).aggregate(
+            total_sales=ExpressionWrapper(
+                Sum("price") - (Sum("application_fee") / Value(100.0)),
+                output_field=DecimalField(max_digits=8, decimal_places=2),
+            )
+        )
+
+    def list(self, request, *args, **kwargs):
+        list_queryset = self.filter_queryset(self.get_queryset())
+        total_sales_queryset = self.get_total_sales_queryset()
+        # Default value if seller has no transactions
+        if total_sales_queryset.get("total_sales", "") is None:
+            total_sales_queryset["total_sales"] = 0
+
+        page = self.paginate_queryset(list_queryset)
+        serializer = self.get_serializer(page, many=True)
+
+        list_data = self.paginator.get_paginated_dict(serializer.data)
+        return Response(
+            self.response_serializer_class(
+                total_sales_queryset | {"transaction_list": list_data}
+            ).data
+        )
+
+
+class CustomerTransactionListAPIView(generics.ListAPIView):
+    serializer_class = serializers.CustomerTransactionListSerializer
+    pagination_class = PageNumberPaginationWithCount
+    pagination_class.page_size = 20
+
+    def get_queryset(self):
+        return (
+            models.Transaction.objects.filter(customer=self.request.user)
+            .prefetch_related("seller", "product")
+            .order_by("-modified_at")
+        )

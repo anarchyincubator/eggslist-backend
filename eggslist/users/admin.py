@@ -12,8 +12,30 @@ class IPLog(admin.ModelAdmin):
     list_display = ("ip_address", "determined_city")
 
 
+@admin.register(models.UserStripeConnection)
+class StripeConnectionAdmin(admin.ModelAdmin):
+    list_display = ("stripe_account", "user", "is_onboarding_completed")
+    list_filter = ("is_onboarding_completed",)
+    search_fields = ("stripe_account", "user")
+    readonly_fields = ("stripe_account",)
+
+
+class StripeConnectionAdminInline(admin.TabularInline):
+    model = models.UserStripeConnection
+    can_delete = False
+    readonly_fields = ("is_onboarding_completed",)
+    extra = 0
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(models.User)
 class UserAdmin(DjangoUserAdmin):
+    readonly_fields = ("is_stripe_connected",)
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
@@ -26,6 +48,7 @@ class UserAdmin(DjangoUserAdmin):
                     "email",
                     "is_email_verified",
                     "is_verified_seller",
+                    "is_stripe_connected",
                     "bio",
                     "phone_number",
                     "zip_code",
@@ -39,6 +62,11 @@ class UserAdmin(DjangoUserAdmin):
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
     list_display = DjangoUserAdmin.list_display
+    inlines = (StripeConnectionAdminInline,)
+
+    @admin.display(boolean=True)
+    def is_stripe_connected(self, obj):
+        return bool(obj.stripe_connection.is_onboarding_completed)
 
 
 @admin.register(models.VerifiedSellerApplication)

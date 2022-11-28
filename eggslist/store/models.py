@@ -109,3 +109,49 @@ class UserViewTimestamp(models.Model):
                 fields=("user", "product"), name="user_product_unique_constraint"
             ),
         )
+
+
+class Transaction(models.Model):
+    class Status(models.TextChoices):
+        SUCCESS = "SU", _("Success")
+        FAILED = "FA", _("Failed")
+        IN_PROGRESS = "PR", _("In progress")
+        CHECKOUT_COMPLETED = "CC", _("Checkout completed")
+
+    stripe_connection = models.ForeignKey(
+        verbose_name=_("stripe connection"),
+        to="users.UserStripeConnection",
+        on_delete=models.DO_NOTHING,
+        related_name="transactions",
+    )
+    payment_intent = models.CharField(
+        max_length=80, verbose_name=_("payment intent"), null=True, default=None
+    )
+    product = models.ForeignKey(
+        verbose_name=_("product"),
+        to="ProductArticle",
+        on_delete=models.DO_NOTHING,
+        related_name="transactions",
+    )
+
+    price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2)
+    application_fee = models.IntegerField(verbose_name=_("application fee"), default=0)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True)
+    status = models.CharField(
+        verbose_name=_("status"), max_length=2, choices=Status.choices, default=Status.IN_PROGRESS
+    )
+    seller = models.ForeignKey(
+        verbose_name=_("seller"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING,
+        related_name="seller_transactions",
+    )
+    customer = models.ForeignKey(
+        verbose_name=_("customer"),
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.DO_NOTHING,
+        related_name="customer_transactions",
+        null=True,
+    )
+    customer_email = models.CharField(max_length=256, verbose_name=_("customer_email"), null=True)

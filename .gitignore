@@ -60,6 +60,7 @@ target/
 *.rdb
 *.db
 app/settings/local.py
+.python-version
 
 .mypy_cache/
 

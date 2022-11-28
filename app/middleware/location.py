@@ -2,6 +2,7 @@ import secrets
 import typing as t
 
 from django.conf import settings
+from django.shortcuts import reverse
 
 from eggslist.users.determine_location import locate_request
 from eggslist.users.user_location_storage import UserLocationStorage
@@ -15,6 +16,9 @@ class LocationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request: "HttpRequest"):
+        if request.path.startswith(reverse("eggslist:stripe-webhook")):
+            return self.get_response(request)
+
         user_location_id = request.COOKIES.get(settings.USER_LOCATION_COOKIE_NAME, None)
 
         if user_location_id is None:

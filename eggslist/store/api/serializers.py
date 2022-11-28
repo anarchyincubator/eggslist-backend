@@ -42,6 +42,9 @@ class SellerSerializerSmall(serializers.ModelSerializer):
 
 class SellerSerializer(serializers.ModelSerializer):
     location = LocationSerializer(source="zip_code")
+    is_stripe_connected = serializers.BooleanField(
+        source="stripe_connection.is_onboarding_completed", read_only=True
+    )
 
     class Meta:
         model = User
@@ -52,6 +55,7 @@ class SellerSerializer(serializers.ModelSerializer):
             "avatar",
             "phone_number",
             "is_verified_seller",
+            "is_stripe_connected",
             "location",
         )
 
@@ -139,3 +143,53 @@ class ProductArticleSerializer(ProductSerializerBase):
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_MORE_INFO})
         except article_create_rule.SellerNeedsEmailVerification:
             raise serializers.ValidationError({"popup": messages.SELLER_NEEDS_EMAIL_VERIFICATION})
+
+
+class TransactionProduct(serializers.ModelSerializer):
+    slug = serializers.CharField(read_only=True)
+    price = serializers.DecimalField(max_digits=8, decimal_places=2)
+
+    class Meta:
+        model = models.ProductArticle
+        fields = ("title", "image", "slug", "price")
+
+
+class TransactionListSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(max_digits=8, decimal_places=2)
+    application_fee = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(read_only=True)
+    product = TransactionProduct(required=False)
+    status = serializers.CharField(source="get_status_display")
+
+    def get_application_fee(self, obj):
+        return "{0:.2f}".format(obj.application_fee / 100)
+
+
+class SellerTransactionListSerializer(TransactionListSerializer):
+    class Meta:
+        model = models.Transaction
+        fields = (
+            "product",
+            "price",
+            "application_fee",
+            "created_at",
+            "status",
+            "customer",
+            "customer_email",
+        )
+
+
+class SellerTransactionListTotalSalesSerializer(serializers.Serializer):
+    total_sales = serializers.DecimalField(max_digits=20, decimal_places=2, default=0)
+    transaction_list = serializers.DictField(allow_empty=True)
+
+    class Meta:
+        fields = ("total_sales", "transaction_list")
+
+
+class CustomerTransactionListSerializer(TransactionListSerializer):
+    seller = SellerSerializer(read_only=True)
+
+    class Meta:
+        model = models.Transaction
+        fields = ("product", "price", "created_at", "status", "seller")
