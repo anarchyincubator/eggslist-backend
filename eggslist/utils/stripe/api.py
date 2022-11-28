@@ -74,8 +74,12 @@ def create_purchase_url(
             }
         ],
         "mode": "payment",
-        "success_url": f"{settings.SITE_URL}/{settings.STRIPE_TRANSACTION_SUCCESS_URL}",
-        "cancel_url": f"{settings.SITE_URL}/{settings.STRIPE_TRANSACTION_CANCEL_URL}",
+        "success_url": "{site_url}/catalog/product?slug={slug}&popup_purchase=true".format(
+            site_url=settings.SITE_URL, slug=product.slug
+        ),
+        "cancel_url": "{site_url}/catalog/product?slug={slug}".format(
+            site_url=settings.SITE_URL, slug=product.slug
+        ),
         "payment_intent_data": {"application_fee_amount": settings.STRIPE_COMMISSION_FEE},
         "stripe_account": seller_connection.stripe_account,
         "client_reference_id": str(transaction_id),
