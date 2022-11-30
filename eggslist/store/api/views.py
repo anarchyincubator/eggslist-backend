@@ -287,6 +287,18 @@ class SellerTransactionsListAPIView(generics.GenericAPIView):
         )
 
 
+class SellerRecentTransactionListAPIView(generics.ListAPIView):
+    serializer_class = serializers.SellerTransactionListSerializer
+    permission_classes = (IsVerifiedSeller,)
+
+    def get_queryset(self):
+        return (
+            models.Transaction.objects.filter(seller=self.request.user)
+            .prefetch_related("product")
+            .order_by("-modified_at")
+        )[:3]
+
+
 class CustomerTransactionListAPIView(generics.ListAPIView):
     serializer_class = serializers.CustomerTransactionListSerializer
     pagination_class = PageNumberPaginationWithCount

@@ -19,5 +19,6 @@ urlpatterns = [
     path("products/<str:slug>/purchase", views.CreateTransactionAPIView.as_view(), name="product-purchase"),
     path("transactions/customer", views.CustomerTransactionListAPIView.as_view(), name="customer-transactions"),
     path("transactions/seller", views.SellerTransactionsListAPIView.as_view(), name="seller-transactions"),
+    path("transactions-recent/seller", views.SellerRecentTransactionListAPIView.as_view(), name="seller-recent-transaction"),
 ]
 # fmt: on
