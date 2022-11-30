@@ -89,18 +89,15 @@ class SignOutAPIView(APIView):
         return Response(status=200)
 
 
-class UserSmallProfileView(RetrieveUpdateAPIView):
-    serializer_class = serializers.UserSerializerSmall
+class UserProfileAPIView(RetrieveUpdateAPIView):
+    serializer_class = serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
 
 
-class UserProfileAPIView(RetrieveUpdateAPIView):
-    serializer_class = serializers.UserSerializer
-    permission_classes = (IsAuthenticated,)
-
+class UserProfileFullAPIView(UserProfileAPIView):
     def retrieve(self, request, *args, **kwargs):
         # Verify if Stripe onboarding completed
         user = self.request.user
@@ -117,9 +114,6 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
                     users=[user],
                 )
         return super().retrieve(request, *args, **kwargs)
-
-    def get_object(self):
-        return self.request.user
 
 
 class OtherUserProfileAPIView(RetrieveAPIView):

@@ -1,3 +1,5 @@
+import typing as t
+
 import stripe
 from django.conf import settings
 from django.db.utils import IntegrityError
@@ -6,7 +8,7 @@ from eggslist.store.models import ProductArticle
 from eggslist.users.models import User, UserStripeConnection
 
 
-def create_account(user: User) -> tuple[stripe.Account, UserStripeConnection]:
+def create_account(user: "User") -> t.Tuple["stripe.Account", "UserStripeConnection"]:
     account = stripe.Account.create(
         type=settings.STRIPE_SELLERS_ACCOUNT_TYPE,
         email=user.email,
@@ -24,7 +26,7 @@ def create_account(user: User) -> tuple[stripe.Account, UserStripeConnection]:
     return account, user_stripe_connection
 
 
-def create_connect_url(stripe_connection: UserStripeConnection) -> str:
+def create_connect_url(stripe_connection: "UserStripeConnection") -> str:
     connect_link = None
     try:
         connect_link = stripe.AccountLink.create(
