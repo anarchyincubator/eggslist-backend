@@ -3,7 +3,6 @@ import typing as t
 from django.conf import settings
 from django.db.models import DecimalField, ExpressionWrapper, Sum, Value
 from django.http import Http404
-from django.shortcuts import redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
@@ -210,7 +209,7 @@ class CreateTransactionAPIView(APIView):
     lookup_field = "slug"
     permission_classes = (AllowAny,)
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         product_slug = self.kwargs[self.lookup_field]
         try:
             product = models.ProductArticle.objects.select_related(
@@ -239,7 +238,7 @@ class CreateTransactionAPIView(APIView):
         purchase_url = stripe_api.create_purchase_url(
             request.user, stripe_connection, product, transaction.id
         )
-        return redirect(purchase_url)
+        return Response({"redirect_url": purchase_url}, status=200)
 
 
 class SellerTransactionsListAPIView(generics.GenericAPIView):
