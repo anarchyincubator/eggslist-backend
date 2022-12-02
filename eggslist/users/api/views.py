@@ -88,34 +88,9 @@ class SignOutAPIView(APIView):
         return Response(status=200)
 
 
-class UserSmallProfileView(RetrieveUpdateAPIView):
-    serializer_class = serializers.UserSerializerSmall
-    permission_classes = (IsAuthenticated,)
-
-    def get_object(self):
-        return self.request.user
-
-
 class UserProfileAPIView(RetrieveUpdateAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
-
-    def retrieve(self, request, *args, **kwargs):
-        # Verify if Stripe onboarding completed
-        user = self.request.user
-        if (
-            hasattr(user, "stripe_connection")
-            and not user.stripe_connection.is_onboarding_completed
-        ):
-            if stripe_api.is_onboarding_completed(user.stripe_connection):
-                user.stripe_connection.is_onboarding_completed = True
-                user.stripe_connection.save()
-                send_mailing(
-                    subject="Stripe",
-                    mail_template="emails/stripe_connected.html",
-                    users=[user],
-                )
-        return super().retrieve(request, *args, **kwargs)
 
     def get_object(self):
         return self.request.user
