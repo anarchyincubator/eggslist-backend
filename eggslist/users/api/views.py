@@ -121,6 +121,25 @@ class UserProfileAPIView(RetrieveUpdateAPIView):
         return self.request.user
 
 
+class UserProfileFullAPIView(UserProfileAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        # Verify if Stripe onboarding completed
+        user = self.request.user
+        if (
+            hasattr(user, "stripe_connection")
+            and not user.stripe_connection.is_onboarding_completed
+        ):
+            if stripe_api.is_onboarding_completed(user.stripe_connection):
+                user.stripe_connection.is_onboarding_completed = True
+                user.stripe_connection.save()
+                send_mailing(
+                    subject="Stripe",
+                    mail_template="emails/stripe_connected.html",
+                    users=[user],
+                )
+        return super().retrieve(request, *args, **kwargs)
+
+
 class OtherUserProfileAPIView(RetrieveAPIView):
     serializer_class = serializers.OtherUserSerializer
 
@@ -316,5 +335,4 @@ class ConnectStripeCreateAPIView(APIView):
             account, user_stripe_connection = stripe_api.create_account(request.user)
 
         connect_url = stripe_api.create_connect_url(user_stripe_connection)
-
         return Response({"redirect_url": connect_url}, status=200)
