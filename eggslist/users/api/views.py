@@ -2,7 +2,6 @@ import typing as t
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.http import Http404
-from django.shortcuts import redirect
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     CreateAPIView,
@@ -308,7 +307,7 @@ class ConnectStripeCreateAPIView(APIView):
 
     permission_classes = (IsAuthenticated, IsVerifiedSeller)
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
             user_stripe_connection = models.UserStripeConnection.objects.get(
                 user=request.user,
@@ -317,4 +316,5 @@ class ConnectStripeCreateAPIView(APIView):
             account, user_stripe_connection = stripe_api.create_account(request.user)
 
         connect_url = stripe_api.create_connect_url(user_stripe_connection)
-        return redirect(connect_url)
+
+        return Response({"redirect_url": connect_url}, status=200)
