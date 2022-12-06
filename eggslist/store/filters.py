@@ -62,7 +62,11 @@ class ProductFilter(filters.FilterSet):
             ("date_create", "Date Created"),
             ("-date_created", "Date Created (descending)"),
         ),
-        fields={"price": "price", "date_created": "date_created", "engagement_count": "relevance"},
+        fields={
+            "price": "price",
+            "date_created": "date_created",
+            "-engagement_count": "relevance",
+        },
     )
 
     class Meta:
