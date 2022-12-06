@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
@@ -59,3 +59,11 @@ class BlogRetrieveAPIView(generics.RetrieveAPIView):
         "category", "author__zip_code__city__state"
     )
     lookup_field = "slug"
+
+
+class BlogCreateAPIView(generics.CreateAPIView):
+    serializer_class = serializers.BlogSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)

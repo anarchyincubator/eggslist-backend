@@ -38,7 +38,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 
 
 class BlogSerializerSmall(serializers.ModelSerializer):
-    category = CategorySerializer(many=False)
+    category = CategorySerializer(many=False, read_only=True)
     author = AuthorSerializerSmall(many=False, read_only=True)
 
     class Meta:
@@ -47,9 +47,16 @@ class BlogSerializerSmall(serializers.ModelSerializer):
 
 
 class BlogSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(many=False)
-    author = AuthorSerializer(many=False)
+    category = CategorySerializer(many=False, read_only=True)
+    author = AuthorSerializer(many=False, read_only=True)
+    slug = serializers.SlugField(read_only=True)
+    category_slug = serializers.SlugRelatedField(
+        slug_field="slug",
+        write_only=True,
+        queryset=models.BlogCategory.objects.all(),
+        source="category",
+    )
 
     class Meta:
-        fields = ("image", "title", "slug", "author", "category", "body")
+        fields = ("image", "title", "slug", "author", "category", "body", "category_slug")
         model = models.BlogArticle
