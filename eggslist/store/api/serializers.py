@@ -54,6 +54,7 @@ class SellerSerializer(serializers.ModelSerializer):
             "last_name",
             "avatar",
             "phone_number",
+            "email",
             "is_verified_seller",
             "is_stripe_connected",
             "location",
