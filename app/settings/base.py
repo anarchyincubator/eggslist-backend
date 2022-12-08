@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     "storages",
     "imagekit",
     "adminsortable2",
+    "django_summernote",
     # project applications
     "eggslist.users",
     "eggslist.site_configuration",
@@ -192,7 +193,29 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
+################
+# WYSIWYG
+################
 
+SUMMERNOTE_CONFIG = {
+    "summernote": {
+        "toolbar": [
+            ["style", ["style"]],
+            ["font", ["bold", "clear"]],
+            ["para", ["ul"]],
+            ["insert", ["link", "picture"]],
+            ["view", ["fullscreen", "codeview", "help"]],
+        ],
+        "styleTags": [
+            {"title": "Heading", "tag": "h2", "value": "h2"},
+            {"title": "Normal Text", "tag": "p", "value": "p"},
+            {"title": "Large Text", "tag": "h5", "value": "h5", "className": "text-large"},
+        ],
+        "attachment_filesize_limit": 2048 * 2048,
+    }
+}
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 ################
 # Authentication
 ################
@@ -212,7 +235,6 @@ SIMPLE_JWT = {
 ################
 # Email sending
 ################
-
 
 EMAIL_HOST = env("EMAIL_HOST")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
@@ -234,3 +256,13 @@ FACEBOOK_AUTH_REDIRECT_URL = "social/facebook/sign-in"
 FACEBOOK_CLIENT_ID = env("FACEBOOK_CLIENT_ID")
 FACEBOOK_SECRET_KEY = env("FACEBOOK_SECRET_KEY")
 FACEBOOK_OAUTH_SCOPE = ["email", "profile"]
+
+######################
+# Stripe Settings
+######################
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_ENDPOINT_SECRET_KEY = env("STRIPE_WEBHOOK_ENDPOINT_SECRET_KEY")
+STRIPE_APPLICATION_FEE = 1
+STRIPE_SELLERS_ACCOUNT_TYPE = "standard"
+STRIPE_CONNECT_REFRESH_URL = "api/users/connect-stripe"
+STRIPE_CONNECT_RETURN_URL = "profile"

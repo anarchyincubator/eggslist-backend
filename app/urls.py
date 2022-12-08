@@ -6,7 +6,11 @@ from rest_framework.documentation import include_docs_urls
 
 from app import constants
 
-urlpatterns = [path(settings.ADMIN_URL, admin.site.urls), path("api/", include("eggslist.urls"))]
+urlpatterns = [
+    path(settings.ADMIN_URL, admin.site.urls),
+    path("api/", include("eggslist.urls", namespace="eggslist")),
+    path("summernote/", include("django_summernote.urls")),
+]
 
 admin.site.site_header = "Eggslist Admin"
 if settings.DEBUG:

@@ -114,12 +114,27 @@ class SetLocationSerializer(serializers.Serializer):
     )
 
 
+class UserSerializerSmall(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "avatar",
+        )
+
+
 class UserSerializer(serializers.ModelSerializer):
     user_location = UserZipCodeLocationSerializer(
         required=False, read_only=True, source="zip_code"
     )
     is_email_verified = serializers.BooleanField(read_only=True)
     is_verified_seller = serializers.BooleanField(read_only=True)
+    is_stripe_connected = serializers.BooleanField(
+        source="stripe_connection.is_onboarding_completed", read_only=True
+    )
     zip_code = serializers.SlugRelatedField(
         slug_field="slug", write_only=True, queryset=LocationZipCode.objects.all(), required=False
     )
@@ -135,6 +150,7 @@ class UserSerializer(serializers.ModelSerializer):
             "is_email_verified",
             "is_verified_seller",
             "is_verified_seller_pending",
+            "is_stripe_connected",
             "date_joined",
             "phone_number",
             "avatar",
