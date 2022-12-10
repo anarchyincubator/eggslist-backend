@@ -58,5 +58,14 @@ class BlogSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("image", "title", "slug", "author", "category", "body", "category_slug")
+        fields = (
+            "image",
+            "title",
+            "slug",
+            "author",
+            "category",
+            "body",
+            "category_slug",
+            "date_created",
+        )
         model = models.BlogArticle

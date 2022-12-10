@@ -59,12 +59,14 @@ class ProductFilter(filters.FilterSet):
             ("relevance", "Relevance"),
             ("price", "Price"),
             ("-price", "Price (descending)"),
-            ("date_create", "Date Created"),
+            ("date_created", "Date Created"),
             ("-date_created", "Date Created (descending)"),
+            ("proximity", "Proximety"),
         ),
         fields={
             "price": "price",
             "date_created": "date_created",
+            "distance": "proximity",
             "-engagement_count": "relevance",
         },
     )
