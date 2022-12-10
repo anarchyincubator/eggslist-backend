@@ -29,5 +29,10 @@ server {
     	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_pass http://172.17.0.4:8000;
     }
+
+    location ^~ /summernote {
+    	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_pass http://172.17.0.4:8000;
+    }
 }
 
