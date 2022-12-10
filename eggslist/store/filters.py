@@ -59,7 +59,7 @@ class ProductFilter(filters.FilterSet):
             ("relevance", "Relevance"),
             ("price", "Price"),
             ("-price", "Price (descending)"),
-            ("date_create", "Date Created"),
+            ("date_created", "Date Created"),
             ("-date_created", "Date Created (descending)"),
             ("proximity", "Proximety"),
         ),
