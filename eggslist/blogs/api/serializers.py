@@ -33,7 +33,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     location = AuthorLocationSerializer(source="zip_code")
 
     class Meta:
-        fields = ("first_name", "last_name", "id", "location")
+        fields = ("first_name", "last_name", "id", "location", "avatar", "phone_number", "email")
         model = User
 
 
