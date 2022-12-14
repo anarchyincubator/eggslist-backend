@@ -27,6 +27,10 @@ class CategoryListAPIView(generics.ListAPIView):
     queryset = models.Category.objects.all().prefetch_related("subcategories")
 
 
+class ProductCatalogPagination(PageNumberPaginationWithCount):
+    page_size = 12
+
+
 class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
     Get Product Articles. Use filters as query parameters.
@@ -39,7 +43,7 @@ class ProductArticleListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = ProductFilter
     search_fields = ("title", "description")
-    pagination_class = PageNumberPaginationWithCount
+    pagination_class = ProductCatalogPagination
 
     def get_queryset(self):
         return models.ProductArticle.objects.get_all_catalog_no_hidden(
@@ -53,7 +57,7 @@ class PopularProductListAPIView(AnonymousUserIdAPIMixin, generics.ListAPIView):
     """
 
     serializer_class = serializers.ProductArticleSerializerSmall
-    pagination_class = PageNumberPaginationWithCount
+    pagination_class = ProductCatalogPagination
 
     def get_queryset(self):
         return models.ProductArticle.objects.get_all_catalog_no_hidden(
