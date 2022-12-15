@@ -6,6 +6,11 @@ from rest_framework.documentation import include_docs_urls
 
 from app import constants
 
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("api/", include("eggslist.urls", namespace="eggslist")),
@@ -26,3 +31,4 @@ if settings.DEBUG:
             ),
         )
     )
+    urlpatterns.append(path("sentry-debug/", trigger_error))
