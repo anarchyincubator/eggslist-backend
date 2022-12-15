@@ -1,5 +1,8 @@
 from datetime import timedelta
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 from app.settings import APP_DIR, env
 
 ########################
@@ -266,3 +269,19 @@ STRIPE_APPLICATION_FEE = 1
 STRIPE_SELLERS_ACCOUNT_TYPE = "standard"
 STRIPE_CONNECT_REFRESH_URL = "api/users/connect-stripe"
 STRIPE_CONNECT_RETURN_URL = "profile"
+
+
+######################
+# Sentry
+######################
+sentry_sdk.init(
+    dsn=env("SENTRY_URL"),
+    integrations=[
+        DjangoIntegration(),
+    ],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+    _experiments={
+        "profiles_sample_rate": 1.0,
+    },
+)
