@@ -56,6 +56,11 @@ class BlogSerializer(serializers.ModelSerializer):
         queryset=models.BlogCategory.objects.all(),
         source="category",
     )
+    similar_blogs = serializers.SerializerMethodField()
+
+    def get_similar_blogs(self, obj):
+        qs = models.BlogArticle.objects.get_similar_for(obj)
+        return BlogSerializerSmall(qs, many=True).data
 
     class Meta:
         fields = (
@@ -66,6 +71,7 @@ class BlogSerializer(serializers.ModelSerializer):
             "category",
             "body",
             "category_slug",
+            "similar_blogs",
             "date_created",
         )
         model = models.BlogArticle
