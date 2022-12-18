@@ -2,13 +2,13 @@ from collections import OrderedDict
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from eggslist.blogs import models
-from eggslist.blogs.api import serializers
+from eggslist.blogs.api import messages, serializers
 from eggslist.blogs.filters import BlogFilter
 
 
@@ -53,12 +53,25 @@ class BlogListAPIView(generics.ListAPIView):
     search_fields = ("title", "category__name")
 
 
-class BlogRetrieveAPIView(generics.RetrieveAPIView):
+class BlogRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.BlogSerializer
     queryset = models.BlogArticle.objects.select_related(
         "category", "author__zip_code__city__state"
     )
     lookup_field = "slug"
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def permit_operation(self, instance, message: str = messages.ONLY_AUTHOR_CAN_UPDATE):
+        if instance.author != self.request.user:
+            raise ValidationError({"message": message})
+
+    def perform_update(self, serializer):
+        self.permit_operation(serializer.instance)
+        serializer.save(author=self.request.user)
+
+    def perform_destroy(self, instance):
+        self.permit_operation(instance, message=messages.ONLY_AUTHOR_CAN_DESTROY)
+        return super().perform_destroy(instance)
 
 
 class BlogCreateAPIView(generics.CreateAPIView):
