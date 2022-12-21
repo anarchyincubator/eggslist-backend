@@ -1,11 +1,15 @@
 from collections import OrderedDict
 
+from django.conf import settings
+from django.utils.module_loading import import_string
 from django_filters.rest_framework import DjangoFilterBackend
+from PIL import Image
 from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from eggslist.blogs import models
 from eggslist.blogs.api import messages, serializers
@@ -80,3 +84,32 @@ class BlogCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class CKEditorImageUpload(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    class NoImageException(Exception):
+        pass
+
+    @classmethod
+    def image_verify(cls, f):
+        try:
+            Image.open(f).verify()
+        except OSError:
+            raise ValidationError({"error": "Image is required"})
+
+    @staticmethod
+    def get_storage_class():
+        if hasattr(settings, "CKEDITOR_5_FILE_STORAGE"):
+            return import_string(settings.CKEDITOR_5_FILE_STORAGE)
+        return import_string(settings.DEFAULT_FILE_STORAGE)
+
+    def post(self, request, *args, **kwargs):
+        f = request.FILES["upload"]
+        self.image_verify(f)
+        Storage = self.get_storage_class()
+        fs = Storage()
+        filename = fs.save(f.name, f)
+        url = fs.url(filename)
+        return Response({"url": url})

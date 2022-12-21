@@ -58,7 +58,7 @@ INSTALLED_APPS = (
     "storages",
     "imagekit",
     "adminsortable2",
-    "django_summernote",
+    "django_ckeditor_5",
     # project applications
     "eggslist.users",
     "eggslist.site_configuration",
@@ -71,7 +71,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
-    # "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -191,31 +191,10 @@ GEO_CITIES_PATH = f"{GEOIP_PATH}/us_cities.csv"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "app.authentication.CsrfExemptSessionAuthentication",
+        # "app.authentication.CsrfExemptSessionAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
-}
-################
-# WYSIWYG
-################
-
-SUMMERNOTE_CONFIG = {
-    "summernote": {
-        "toolbar": [
-            ["style", ["style"]],
-            ["font", ["bold", "clear"]],
-            ["para", ["ul"]],
-            ["insert", ["link", "picture"]],
-            ["view", ["fullscreen", "codeview", "help"]],
-        ],
-        "styleTags": [
-            {"title": "Heading", "tag": "h2", "value": "h2"},
-            {"title": "Normal Text", "tag": "p", "value": "p"},
-            {"title": "Large Text", "tag": "h5", "value": "h5", "className": "text-large"},
-        ],
-        "attachment_filesize_limit": 2048 * 2048,
-    }
 }
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
@@ -230,6 +209,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 USER_LOCATION_COOKIE_NAME = "user_location_id"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_COOKIE_DOMAIN = ".eggslist.com"
+CSRF_COOKIE_DOMAIN = ".eggslist.com"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,
 }
@@ -285,3 +265,44 @@ sentry_sdk.init(
         "profiles_sample_rate": 1.0,
     },
 )
+
+###########################
+# CKEditor WYSIWYG Settings
+###########################
+customColorPalette = [
+    {"color": "hsl(4, 90%, 58%)", "label": "Red"},
+    {"color": "hsl(340, 82%, 52%)", "label": "Pink"},
+    {"color": "hsl(291, 64%, 42%)", "label": "Purple"},
+    {"color": "hsl(262, 52%, 47%)", "label": "Deep Purple"},
+    {"color": "hsl(231, 48%, 48%)", "label": "Indigo"},
+    {"color": "hsl(207, 90%, 54%)", "label": "Blue"},
+]
+CKEDITOR_5_CONFIGS = {
+    "default": {
+        "toolbar": [
+            "heading",
+            "|",
+            "link",
+            "blockQuote",
+            "imageUpload",
+        ],
+        "heading": {
+            "options": [
+                {"model": "paragraph", "title": "Paragraph", "class": "ck-heading_paragraph"},
+                {
+                    "model": "heading2",
+                    "view": "h2",
+                    "title": "Heading 2",
+                    "class": "ck-heading_heading2",
+                },
+                {
+                    "model": "heading5",
+                    "view": "h5",
+                    "title": "Heading 5",
+                    "class": "ck-heading_heading5",
+                },
+            ]
+        },
+    }
+}
+CKEDITOR_5_FILE_STORAGE = "app.storage_backends.CKEditorStorage"

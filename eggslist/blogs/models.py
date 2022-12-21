@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django_ckeditor_5.fields import CKEditor5Field
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 
@@ -30,7 +31,7 @@ class BlogArticle(TitleSlugModel):
         verbose_name=_("category"), to="BlogCategory", on_delete=models.CASCADE
     )
     date_created = models.DateTimeField(verbose_name=_("date created"), auto_now_add=True)
-    body = models.TextField(verbose_name=_("body"))
+    body = CKEditor5Field(verbose_name=_("body"), config_name="default")
 
     objects = BlogManager()
 
