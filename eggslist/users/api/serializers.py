@@ -6,6 +6,7 @@ from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from eggslist.blogs.models import BlogArticle
 from eggslist.site_configuration.models import LocationCity, LocationZipCode
 from eggslist.users import models
 from eggslist.users.api import messages
@@ -138,6 +139,10 @@ class UserSerializer(serializers.ModelSerializer):
     zip_code = serializers.SlugRelatedField(
         slug_field="slug", write_only=True, queryset=LocationZipCode.objects.all(), required=False
     )
+    has_posted_blogs = serializers.SerializerMethodField()
+
+    def get_has_posted_blogs(self, user):
+        return BlogArticle.objects.filter(author=user).exists()
 
     class Meta:
         model = User
@@ -156,6 +161,7 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar",
             "bio",
             "zip_code",
+            "has_posted_blogs",
         )
 
 
@@ -172,6 +178,10 @@ class OtherUserSerializer(serializers.ModelSerializer):
         required=False, read_only=True, source="zip_code"
     )
     is_favorite = serializers.BooleanField(read_only=True)
+    has_posted_blogs = serializers.SerializerMethodField()
+
+    def get_has_posted_blogs(self, user):
+        return BlogArticle.objects.filter(author=user).exists()
 
     class Meta:
         model = User
@@ -187,6 +197,7 @@ class OtherUserSerializer(serializers.ModelSerializer):
             "avatar",
             "bio",
             "is_favorite",
+            "has_posted_blogs",
         )
 
 

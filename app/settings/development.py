@@ -1,10 +1,11 @@
 # flake8: noqa
 from .base import *  # noqa
 
-INSTALLED_APPS += ("corsheaders",)
+# INSTALLED_APPS += ("corsheaders",)
 DEBUG = True
 SITE_URL = "https://eggslist-frontend.ferialabs.com"
 SESSION_COOKIE_DOMAIN = ".ferialabs.com"
+CSRF_COOKIE_DOMAIN = ".ferialabs.com"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

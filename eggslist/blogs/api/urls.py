@@ -10,6 +10,7 @@ urlpatterns = [
     path("blogs", views.BlogListAPIView.as_view(), name="blogs-all"),
     path("blogs/featured", views.FeaturedBlogListAPIView.as_view(), name="blogs-featured"),
     path("blogs/create", views.BlogCreateAPIView.as_view(), name="blogs-create"),
-    path("blogs/<str:slug>", views.BlogRetrieveAPIView.as_view(), name="blog-retrieve"),
+    path("blogs/ckeditor-upload", views.CKEditorImageUpload.as_view(), name="blog-create-ckeditor-upload"),
+    path("blogs/<str:slug>", views.BlogRetrieveUpdateDestroyAPIView.as_view(), name="blog-retrieve-update-destroy"),
 ]
 # fmt: on

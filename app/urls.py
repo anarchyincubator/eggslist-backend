@@ -14,7 +14,7 @@ def trigger_error(request):
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("api/", include("eggslist.urls", namespace="eggslist")),
-    path("summernote/", include("django_summernote.urls")),
+    path("ckeditor5/", include("django_ckeditor_5.urls")),
 ]
 
 admin.site.site_header = "Eggslist Admin"
