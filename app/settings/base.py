@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     "django.contrib.gis",
     "django.contrib.sites",
     "app.admin.EggslistAdminConfig",
+    "django.contrib.humanize",
     # third-party packages
     "rest_framework",
     "django_filters",
