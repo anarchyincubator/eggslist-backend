@@ -9,17 +9,16 @@ class EggslistAdminSite(admin.AdminSite):
         registered in this site.
         """
         models_ordering = {
-            "ProductArticle": 1,
-            "Category": 2,
-            "Subcategory": 3,
-            "Transaction": 4,
-            "UserViewTimestamp": 5,
+            "SaleStatistic": 1,
+            "ProductArticle": 2,
+            "Category": 3,
+            "Subcategory": 4,
+            "Transaction": 5,
             "BlogArticle": 1,
             "BlogCategory": 2,
             "User": 1,
             "VerifiedSellerApplication": 2,
             "UserStripeConnection": 3,
-            "UserIPLocationLog": 4,
             "LocationCountry": 1,
             "LocationState": 2,
             "LocationCity": 3,

@@ -155,3 +155,10 @@ class Transaction(models.Model):
         null=True,
     )
     customer_email = models.CharField(max_length=256, verbose_name=_("customer_email"), null=True)
+
+
+class SaleStatistic(Transaction):
+    class Meta:
+        proxy = True
+        verbose_name = "Sale Statistic"
+        verbose_name_plural = "Sales Statistics"

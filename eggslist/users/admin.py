@@ -1,15 +1,12 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.forms import UserChangeForm
+from django.forms import TextInput
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
 
 from eggslist.users import constants, models
 from eggslist.utils.admin import ImageAdmin
-
-
-@admin.register(models.UserIPLocationLog)
-class IPLog(admin.ModelAdmin):
-    list_display = ("ip_address", "determined_city")
 
 
 @admin.register(models.UserStripeConnection)
@@ -32,10 +29,14 @@ class StripeConnectionAdminInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(models.User)
 class UserAdmin(DjangoUserAdmin):
-    readonly_fields = ("is_stripe_connected",)
+    readonly_fields = ("is_stripe_connected", "date_joined", "last_login")
+    autocomplete_fields = ("zip_code",)
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
@@ -61,8 +62,16 @@ class UserAdmin(DjangoUserAdmin):
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    list_display = DjangoUserAdmin.list_display
+    list_display = DjangoUserAdmin.list_display + ("date_joined",)
     inlines = (StripeConnectionAdminInline,)
+    search_fields = ("email", "first_name", "last_name", "bio")
+    list_filter = (
+        "date_joined",
+        "is_email_verified",
+        "is_verified_seller",
+        "stripe_connection__is_onboarding_completed",
+        "zip_code__city__state",
+    )
 
     @admin.display(boolean=True)
     def is_stripe_connected(self, obj):
