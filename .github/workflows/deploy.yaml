@@ -3,101 +3,31 @@ name: Continuous Integration and Delivery
 on: [push]
         
 jobs:
-  
-  environment_check:
-    name: Define Environment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get Current Environment
-        id: branch_check
-        run: |
-          echo "Running on branch ${{ github.ref }}"
-          if [ "${{ github.ref }}" = "refs/heads/production" ]; then
-            echo "::set-output name=env_name::production"
-          elif [ "${{ github.ref }}" = "refs/heads/development" ]; then
-            echo "::set-output name=env_name::development"
-          else
-             echo "::set-output name=env_name::development"
-          fi 
-    outputs:
-      env_name: ${{ steps.branch_check.outputs.env_name }}
-  
   build:
     name: Build Docker Images
-    needs: [environment_check]
     runs-on: ubuntu-latest
-    environment: ${{ needs.environment_check.outputs.env_name }}
+    env:
+      DO_DOCKER_REGISTRY_NAME: registry.digitalocean.com
+      DO_DOCKER_IMAGE_NAME: registry.digitalocean.com/eggslist-container/eggslist-backend
     steps:
       - name: Checkout master
-        uses: actions/checkout@v1
-          
-      - name: Use variable setup in previous step
-        run: echo "I'm using variable ${{ needs.environment_check.outputs.env_name }}"
-        
-      - name: Add Application Environment Variables to .env
-        run: echo ${{ secrets.DJANGO_ENV_B64 }} | base64 -d >> .env
-    
-      - name: Set Nginx file depending on environment
-        run: |
-         if [ "${{ needs.environment_check.outputs.env_name  }}" = "development" ]; then
-           cat ./deploy/eggslist-nginx.conf.dev >> ./deploy/eggslist-nginx.conf
-         elif [ "${{ needs.environment_check.outputs.env_name  }}" = "production" ];then
-           cat ./deploy/eggslist-nginx.conf.prod >> ./deploy/eggslist-nginx.conf
-         fi
+        uses: actions/checkout@main
 
-      - name: Log in to Docker Registry Hub
-        run: docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        env:
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          
-      - name: Pull images
-        run: |
-          docker pull ${{ secrets.WEB_IMAGE }} || true
-          docker pull ${{ secrets.NGINX_IMAGE }} || true
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_ACCESS_TOKEN }}
 
-      - name: Build images
-        run: |
-          docker build -f ./deploy/Dockerfile.backend -t ${{ secrets.WEB_IMAGE }} .
-          echo "FINISHED WEB IMAGE"
-          docker build -f ./deploy/Dockerfile.nginx -t ${{ secrets.NGINX_IMAGE }} .
+      - name: Build container image
+        run: | 
+          docker build -t ${{ env.DO_DOCKER_IMAGE_NAME }}:$(echo $GITHUB_SHA | head -c7) .
+          docker build -t ${{ env.DO_DOCKER_IMAGE_NAME }}:latest .
 
-      - name: Push images
-        run: |
-          docker push ${{ secrets.WEB_IMAGE }}
-          docker push ${{ secrets.NGINX_IMAGE }}
 
-  deploy:
-    name: Deploy to DigitalOcean
-    runs-on: ubuntu-latest
-    needs: [environment_check, build]
-    environment: ${{ needs.environment_check.outputs.env_name }}
-    steps:
-      - name: Checkout master
-        uses: actions/checkout@v1
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 1200
 
-      - name: Add the private SSH key to the ssh-agent
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      - name: Push image to DigitalOcean Container Registry
         run: |
-          mkdir -p ~/.ssh
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
-
-      - name: Build and deploy images on DigitalOcean
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
-            cd /eggslist/github-deployer
-            docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker rm eggslist-backend --force
-            docker rm eggslist-nginx --force
-            docker rmi ${{  secrets.WEB_IMAGE }} --force
-            docker rmi ${{ secrets.NGINX_IMAGE }} --force
-            docker system prune --force
-            docker pull ${{ secrets.WEB_IMAGE }}
-            docker pull ${{ secrets.NGINX_IMAGE }}
-            docker run --name eggslist-backend -p 8000:8000 -d ${{ secrets.WEB_IMAGE }}
-            docker run --name eggslist-nginx -p 443:443 -p 80:80 -e CERTBOT_EMAIL=${{ secrets.CERTBOT_EMAIL }} -v /eggslist/nginx/secrets:/etc/letsencrypt -d ${{ secrets.NGINX_IMAGE  }}
-          ENDSSH
+          docker push ${{ env.DO_DOCKER_IMAGE_NAME }}:$(echo $GITHUB_SHA | head -c7)
+          docker push ${{ env.DO_DOCKER_IMAGE_NAME }}:latest

@@ -1,2 +1,0 @@
-FROM jonasal/nginx-certbot:latest
-COPY deploy/eggslist-nginx.conf /etc/nginx/conf.d/eggslist-nginx.conf
