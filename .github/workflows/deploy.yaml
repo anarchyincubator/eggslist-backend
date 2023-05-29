@@ -3,9 +3,29 @@ name: Continuous Integration and Delivery
 on: [push]
         
 jobs:
+  environment_check:
+    name: Define Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Current Environment
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/production" ]; then
+            echo "::set-output name=env_name::production"
+          elif [ "${{ github.ref }}" = "refs/heads/development" ]; then
+            echo "::set-output name=env_name::development"
+          else
+             echo "::set-output name=env_name::development"
+          fi 
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+
   build:
     name: Build Docker Images
+    needs: [environment_check]
     runs-on: ubuntu-latest
+    environment: ${{ needs.environment_check.outputs.env_name }}
     env:
       DO_DOCKER_REGISTRY_NAME: registry.digitalocean.com
       DO_DOCKER_IMAGE_NAME: registry.digitalocean.com/eggslist-container/eggslist-backend
@@ -18,16 +38,16 @@ jobs:
         with:
           token: ${{ secrets.DO_ACCESS_TOKEN }}
 
-      - name: Build container image
-        run: | 
-          docker build -t ${{ env.DO_DOCKER_IMAGE_NAME }}:$(echo $GITHUB_SHA | head -c7) .
-          docker build -t ${{ env.DO_DOCKER_IMAGE_NAME }}:latest .
-
-
       - name: Log in to DigitalOcean Container Registry with short-lived credentials
         run: doctl registry login --expiry-seconds 1200
 
-      - name: Push image to DigitalOcean Container Registry
-        run: |
-          docker push ${{ env.DO_DOCKER_IMAGE_NAME }}:$(echo $GITHUB_SHA | head -c7)
-          docker push ${{ env.DO_DOCKER_IMAGE_NAME }}:latest
+      - name: Update Backend image in Digital Ocean Artifact Registry
+        id: docker-push-tagged
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          file: ./Dockerfile
+          secrets: ENV_SECRETS=${{ secrets.DJANGO_ENV_B64 }}
+          tags: |
+            ${{ env.DO_DOCKER_IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.DO_DOCKER_IMAGE_NAME }}:latest

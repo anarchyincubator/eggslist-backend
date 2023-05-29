@@ -24,6 +24,9 @@ COPY ./entrypoint.sh .
 RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
 RUN chmod +x /usr/src/app/entrypoint.sh
 # Copy project
+RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $WORKDIR/.env
+
+
 
 FROM python:3.9-slim-buster as main
 # create the app user
@@ -48,6 +51,8 @@ RUN pip install --no-cache /wheels/*
 COPY . $APP_HOME
 RUN sed -i 's/\r$//g' $APP_HOME/entrypoint.sh
 RUN chmod +x $APP_HOME/entrypoint.sh
+
+RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $APP_HOME/.env
 
 #RUN chown -R app:app $APP_HOME
 
