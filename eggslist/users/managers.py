@@ -1,6 +1,7 @@
 import secrets
 
 from django.apps import apps
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import UserManager
 from django.db import IntegrityError
 from django.db.models import Exists, Manager, OuterRef, Value
@@ -9,6 +10,8 @@ from eggslist.site_configuration.models import LocationZipCode
 
 
 class EggslistUserManager(UserManager):
+    use_in_migrations = True
+
     def _create_user(self, username=None, email=None, password=None, **extra_fields):
         email = self.normalize_email(email)
         if email is None:
@@ -17,12 +20,18 @@ class EggslistUserManager(UserManager):
             username = secrets.token_hex(9)
 
         user = self.model(email=email, username=username, **extra_fields)
-        user.set_password(password)
+        user.password = make_password(password)
         user.save(using=self._db)
         return user
 
     def create_user(self, username=None, email=None, password=None, **extra_fields):
         return super().create_user(
+            username=username, email=email, password=password, **extra_fields
+        )
+
+    def create_superuser(self, username=None, email=None, password=None, **extra_fields):
+        username = email.split("@")[0]
+        return super().create_superuser(
             username=username, email=email, password=password, **extra_fields
         )
 

@@ -135,7 +135,8 @@ ADMIN_URL = "admin/"
 #########################
 # Other settings (Templates, Locale, Context)
 #########################
-
+DJANGO_SUPERUSER_EMAIL = env("DJANGO_SUPERUSER_EMAIL")
+DJANGO_SUPERUSER_PASSWORD = env("DJANGO_SUPERUSER_PASSWORD")
 LOCALE_PATHS = (str(APP_DIR.path("app", "locale")),)
 
 AUTH_PASSWORD_VALIDATORS = ()
