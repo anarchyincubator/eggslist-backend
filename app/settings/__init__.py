@@ -5,7 +5,7 @@ APP_DIR = environ.Path(__file__) - 3
 env.read_env(str(APP_DIR.path(".env")))
 
 
-if env("ENVIRONMENT") == "dev":
+if env("ENVIRONMENT") == "development":
     from .development import *  # noqa
 elif env("ENVIRONMENT") == "local":
     try:

@@ -8,13 +8,6 @@ RUN mkdir /usr/src/tmp
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 # Install dependencies
-#RUN apt-get update && apt-get install --yes libgdal-dev
-
-#RUN apt-get update &&\
-#    apt-get install -y binutils libproj-dev gdal-bin python-gdal python3-gdal
-#RUN apt-get update &&\
-#	yes | apt-get install binutils libproj-dev gdal-bin python-gdal python3-gdal
-
 RUN python -m pip install -U --force-reinstall pip
 COPY ./requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
@@ -33,10 +26,7 @@ ENV APP_HOME=/home/app/web
 RUN mkdir -p $APP_HOME
 WORKDIR $APP_HOME
 
-#COPY --from=build /usr/src/app /
 # install dependencies
-#RUN apk update && apk add libpq
-#RUN apt-get update && apt-get install --yes libgdal-dev
 RUN apt-get update &&\
 	yes | apt-get install binutils libproj-dev gdal-bin python-gdal python3-gdal
 

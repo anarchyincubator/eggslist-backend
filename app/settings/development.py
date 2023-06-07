@@ -5,7 +5,8 @@ from .base import *  # noqa
 DEBUG = True
 SITE_URL = "https://eggslist-frontend.ferialabs.com"
 SESSION_COOKIE_DOMAIN = ".ferialabs.com"
-CSRF_COOKIE_DOMAIN = ".ferialabs.com"
+CSRF_COOKIE_DOMAIN = ".ondigitalocean.app"
+CSRF_TRUSTED_ORIGINS = ["https://eggslist-backend-app-qxv36.ondigitalocean.app"]
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
