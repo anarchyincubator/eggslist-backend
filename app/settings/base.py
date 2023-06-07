@@ -140,6 +140,9 @@ DJANGO_SUPERUSER_EMAIL = env("DJANGO_SUPERUSER_EMAIL")
 DJANGO_SUPERUSER_PASSWORD = env("DJANGO_SUPERUSER_PASSWORD")
 LOCALE_PATHS = (str(APP_DIR.path("app", "locale")),)
 
+# This is for obtaining IP address in instance running in Digital Ocean managed docker application
+# Refer to https://www.digitalocean.com/community/questions/client-ip-on-app-platform
+IP_ADDRESS_REQUEST_META_KEY = "HTTP_DO_CONNECTING_IP"
 AUTH_PASSWORD_VALIDATORS = ()
 
 TEMPLATES = [
