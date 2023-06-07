@@ -37,6 +37,7 @@ def locate_ip(ip_address: str) -> t.Optional[str]:
 
 def locate_request(request: "HttpRequest") -> t.Tuple["LocationCity", bool]:
     ip_address = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", ""))
+    print(ip_address, "ASDMASKDKLASDLKASMDLKASMDKLAMSKLDMASLKDMASLKDM I AM HERE")
     try:
         location_city = locate_ip(ip_address)
         is_undefined = False
