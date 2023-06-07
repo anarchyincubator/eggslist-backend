@@ -8,6 +8,13 @@ RUN mkdir /usr/src/tmp
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 # Install dependencies
+#RUN apt-get update && apt-get install --yes libgdal-dev
+
+#RUN apt-get update &&\
+#    apt-get install -y binutils libproj-dev gdal-bin python-gdal python3-gdal
+#RUN apt-get update &&\
+#	yes | apt-get install binutils libproj-dev gdal-bin python-gdal python3-gdal
+
 RUN python -m pip install -U --force-reinstall pip
 COPY ./requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
@@ -17,9 +24,6 @@ COPY ./entrypoint.sh .
 RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
 RUN chmod +x /usr/src/app/entrypoint.sh
 # Copy project
-RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $WORKDIR/.env
-
-
 
 FROM python:3.9-slim-buster as main
 # create the app user
@@ -29,8 +33,11 @@ ENV APP_HOME=/home/app/web
 RUN mkdir -p $APP_HOME
 WORKDIR $APP_HOME
 
+#COPY --from=build /usr/src/app /
 # install dependencies
-RUN apt-get update && \
+#RUN apk update && apk add libpq
+#RUN apt-get update && apt-get install --yes libgdal-dev
+RUN apt-get update &&\
 	yes | apt-get install binutils libproj-dev gdal-bin python-gdal python3-gdal
 
 COPY --from=builder /usr/src/app/wheels /wheels
@@ -41,11 +48,12 @@ RUN pip install --no-cache /wheels/*
 COPY . $APP_HOME
 RUN sed -i 's/\r$//g' $APP_HOME/entrypoint.sh
 RUN chmod +x $APP_HOME/entrypoint.sh
-
 RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $APP_HOME/.env
 
 #RUN chown -R app:app $APP_HOME
+
 #USER app
+
 #COPY . .
 # Run Entrypoint script
 ENTRYPOINT ["./entrypoint.sh"]

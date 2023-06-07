@@ -36,6 +36,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://206.189.255.110",
     "https://206.189.255.110",
     "https://eggslist-dev.ferialabs.com",
+    "https://eggslist-backend-app-qxv36.ondigitalocean.app",
 ]
 DEFAULT_LOOKUP_RADIUS = 20  # in miles
 DEFAULT_LOCATION = {"CITY": "Boston", "STATE": "MA"}
