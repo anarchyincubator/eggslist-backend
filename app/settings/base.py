@@ -36,7 +36,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://206.189.255.110",
     "https://206.189.255.110",
     "https://eggslist-dev.ferialabs.com",
-    "https://eggslist-backend-app-qxv36.ondigitalocean.app",
 ]
 DEFAULT_LOOKUP_RADIUS = 20  # in miles
 DEFAULT_LOCATION = {"CITY": "Boston", "STATE": "MA"}
@@ -198,7 +197,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 USER_LOCATION_COOKIE_NAME = "user_location_id"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_COOKIE_DOMAIN = ".eggslist.com"
-CSRF_COOKIE_DOMAIN = ".eggslist.com"
+# CSRF_COOKIE_DOMAIN = ".eggslist.com"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=365 * 100)  # 100 Years. Just make it unexpierable,
 }
