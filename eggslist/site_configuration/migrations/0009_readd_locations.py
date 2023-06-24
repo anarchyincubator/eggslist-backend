@@ -104,6 +104,7 @@ def create_locations(apps, schema_editor):
                     slug=slugify(zip_code_name_adj),
                     city=city,
                     location=zip_code_location,
+                    system_name=slugify(zip_code_name_adj)
                 )
             )
 
