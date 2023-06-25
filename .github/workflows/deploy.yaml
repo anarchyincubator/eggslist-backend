@@ -26,9 +26,6 @@ jobs:
     needs: [environment_check]
     runs-on: ubuntu-latest
     environment: ${{ needs.environment_check.outputs.env_name }}
-    env:
-      DO_DOCKER_REGISTRY_NAME: registry.digitalocean.com
-      DO_DOCKER_IMAGE_NAME: registry.digitalocean.com/eggslist-container/eggslist-backend
     steps:
       - name: Checkout master
         uses: actions/checkout@main
@@ -49,5 +46,5 @@ jobs:
           file: ./Dockerfile
           secrets: ENV_SECRETS=${{ secrets.DJANGO_ENV_B64 }}
           tags: |
-            ${{ env.DO_DOCKER_IMAGE_NAME }}:${{ github.sha }}
-            ${{ env.DO_DOCKER_IMAGE_NAME }}:latest
+            ${{ secrets.DO_DOCKER_IMAGE_NAME }}:${{ github.sha }}
+            ${{ secrets.DO_DOCKER_IMAGE_NAME }}:latest
