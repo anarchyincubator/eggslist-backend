@@ -8,6 +8,7 @@ SESSION_COOKIE_DOMAIN = "eggslist-backend-app-qxv36.ondigitalocean.app"
 # CSRF_COOKIE_DOMAIN = ".ondigitalocean.app"
 CSRF_TRUSTED_ORIGINS = [
     "https://eggslist-backend-app-qxv36.ondigitalocean.app",
+    "https://eggslist-dev.ferialabs.com",
 ]
 LOGGING = {
     "version": 1,
