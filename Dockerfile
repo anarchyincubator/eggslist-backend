@@ -30,6 +30,13 @@ WORKDIR $APP_HOME
 RUN apt-get update &&\
 	yes | apt-get install binutils libproj-dev gdal-bin python-gdal python3-gdal
 
+# Parse env variables to .env file
+RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $APP_HOME/.env
+# Install redis
+RUN yes | apt-get install redis-server
+# Set up a password for redis
+#RUN echo "requirepass $(grep "REDIS_PASSWORD=" $APP_HOME/.env | cut -d '=' -f2) >> /etc/redis/redis.conf"
+
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --no-cache /wheels/*
@@ -38,7 +45,6 @@ RUN pip install --no-cache /wheels/*
 COPY . $APP_HOME
 RUN sed -i 's/\r$//g' $APP_HOME/entrypoint.sh
 RUN chmod +x $APP_HOME/entrypoint.sh
-RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $APP_HOME/.env
 
 #RUN chown -R app:app $APP_HOME
 
