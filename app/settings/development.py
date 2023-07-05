@@ -4,11 +4,12 @@ from .base import *  # noqa
 # INSTALLED_APPS += ("corsheaders",)
 DEBUG = True
 SITE_URL = "https://eggslist-frontend.ferialabs.com"
-SESSION_COOKIE_DOMAIN = "eggslist-backend-app-qxv36.ondigitalocean.app"
+SESSION_COOKIE_DOMAIN = "eggslist-dev.ferialabs.com"
 # CSRF_COOKIE_DOMAIN = ".ondigitalocean.app"
 CSRF_TRUSTED_ORIGINS = [
     "https://eggslist-backend-app-qxv36.ondigitalocean.app",
     "https://eggslist-dev.ferialabs.com",
+    "https://eggslist-frontend.ferialabs.com",
 ]
 LOGGING = {
     "version": 1,
