@@ -84,7 +84,7 @@ def create_purchase_url(
         ),
         "payment_intent_data": {
             "application_fee_amount": settings.STRIPE_APPLICATION_FEE,
-            "receipt_email": True,
+            "receipt_email": None,
         },
         "stripe_account": seller_connection.stripe_account,
         "client_reference_id": str(transaction_id),
