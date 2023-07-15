@@ -7,7 +7,7 @@
 <div id="email-container">
   <div id="main-text-container">
     <h2>Dear, {% firstof user.first_name 'seller' %}</h2>
-    <p> We want to inform you that your product <a href="{{ obj.product_url }}">{% obj.product_title %}</a> has been purchased. You can follow <a href="{{ obj.website_profile_url }}">this link</a> to see your transactions in your profile dashboard.
+    <p> We want to inform you that your product <a href="{{ obj.product_url }}">{{ obj.product_title }}</a> has been purchased. You can follow <a href="{{ obj.website_profile_url }}">this link</a> to see your transactions in your profile dashboard.
     </p>
   </div>
 </div>
