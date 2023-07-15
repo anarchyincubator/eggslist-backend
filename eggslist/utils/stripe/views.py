@@ -69,8 +69,34 @@ class StripeWebhooks(APIView):
             # We need to get this email from Stripe session, after the customer filled it
             # in the form and update payment_intent accordingly. Once it's updated, Stripe
             # can use it for email receipts.
-            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-            payment_intent.update(receipt_email=transaction.customer_email)
+
+            # payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            # payment_intent.update(receipt_email=transaction.customer_email)
+            send_mailing(
+                subject="Eggslist Notification: Sale!",
+                mail_template="emails/stripe_purchase_seller.html",
+                mail_object={
+                    "website_profile_url": f"{settings.SITE_URL}/profile",
+                    "product_title": transaction.product.title,
+                    "product_url": f"{settings.SITE_URL}/catalog/product?slug={transaction.product.slug}",
+                },
+                users=[stripe_connection.user],
+            )
+            customer_email = (
+                transaction.customer.email
+                if transaction.customer is not None
+                else transaction.customer_email
+            )
+            if customer_email is not None:
+                send_mailing(
+                    subject="Eggslist Notification: Purchase!",
+                    mail_template="emails/stripe_purchase_buyer.html",
+                    emails=[customer_email],
+                    mail_object={
+                        "product_title": transaction.product.title,
+                        "product_url": f"{settings.SITE_URL}/catalog/product?slug={transaction.product.slug}",
+                    },
+                )
             transaction.status = Transaction.Status.SUCCESS
 
         if transaction.status != Transaction.Status.SUCCESS:
