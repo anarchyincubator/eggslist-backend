@@ -86,10 +86,13 @@ def create_purchase_url(
         "stripe_account": seller_connection.stripe_account,
         "client_reference_id": str(transaction_id),
         "metadata": {"transaction_id": str(transaction_id)},
+        "billing_address_collection": "required",
     }
 
     if customer.is_authenticated and customer.email:
         checkout_details["customer_email"] = customer.email
+    else:
+        checkout_details["customer_email"] = None
 
     session = stripe.checkout.Session.create(**checkout_details)
 
