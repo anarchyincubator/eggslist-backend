@@ -91,7 +91,7 @@ class StripeWebhooks(APIView):
                 send_mailing(
                     subject="Eggslist Notification: Purchase!",
                     mail_template="emails/stripe_purchase_buyer.html",
-                    emails=[customer_email],
+                    email_addresses=[customer_email],
                     mail_object={
                         "product_title": transaction.product.title,
                         "product_url": f"{settings.SITE_URL}/catalog/product?slug={transaction.product.slug}",
