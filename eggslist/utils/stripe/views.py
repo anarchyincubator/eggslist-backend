@@ -69,7 +69,10 @@ class StripeWebhooks(APIView):
             # We need to get this email from Stripe session, after the customer filled it
             # in the form and update payment_intent accordingly. Once it's updated, Stripe
             # can use it for email receipts.
-            payment_intent = stripe.PaymentIntent.retrieve(transaction.payment_intent)
+            checkout_session_id = event.data.object.session
+            session = stripe.checkout.Session.retrieve(checkout_session_id)
+            payment_intent_id = session.payment_intent
+            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
             payment_intent.update(receipt_email=transaction.customer_email)
 
         if transaction.status != Transaction.Status.SUCCESS:
