@@ -64,16 +64,6 @@ class StripeWebhooks(APIView):
                 )
         if event.data.object.get("payment_status") == "paid":
             transaction.status = Transaction.Status.SUCCESS
-            # Updating receipt_email so that Stripe could use it to send a receipt.
-            # For some reason Stripe doesn't use a customer's email to send a receipt by default.
-            # We need to get this email from Stripe session, after the customer filled it
-            # in the form and update payment_intent accordingly. Once it's updated, Stripe
-            # can use it for email receipts.
-            checkout_session_id = event.data.object.id
-            session = stripe.checkout.Session.retrieve(checkout_session_id)
-            payment_intent_id = session.payment_intent
-            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-            payment_intent.update(receipt_email=transaction.customer_email)
 
         if transaction.status != Transaction.Status.SUCCESS:
             transaction.status = SESSION_TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
@@ -90,7 +80,15 @@ class StripeWebhooks(APIView):
             return
         if not transaction.customer_email and event.data.object.get("receipt_email"):
             transaction.customer_email = event.data.object.get("receipt_email")
-        if transaction.status != Transaction.Status.SUCCESS:
+        if transaction.status == Transaction.Status.SUCCESS:
+            # Updating receipt_email so that Stripe could use it to send a receipt.
+            # For some reason Stripe doesn't use a customer's email to send a receipt by default.
+            # We need to get this email from Stripe session, after the customer filled it
+            # in the form and update payment_intent accordingly. Once it's updated, Stripe
+            # can use it for email receipts.
+            payment_intent = stripe.PaymentIntent.retrieve(transaction_payment_id)
+            payment_intent.update(receipt_email=transaction.customer_email)
+        else:
             transaction.status = PAYMENT_INTENT_TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
         transaction.save()
 
