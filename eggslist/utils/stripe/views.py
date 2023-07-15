@@ -80,7 +80,7 @@ class StripeWebhooks(APIView):
                     "product_title": transaction.product.title,
                     "product_url": f"{settings.SITE_URL}/catalog/product?slug={transaction.product.slug}",
                 },
-                users=[stripe_connection.user],
+                users=[transaction.seller],
             )
             customer_email = (
                 transaction.customer.email
