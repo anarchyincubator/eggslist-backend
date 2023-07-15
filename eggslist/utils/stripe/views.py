@@ -54,7 +54,8 @@ class StripeWebhooks(APIView):
         except (Transaction.DoesNotExist, TypeError):
             request_logger.error("There is no transaction with ID: %s", (transaction_id,))
             return
-        transaction.payment_intent = event.data.object.get("payment_intent")
+        payment_intent_id = event.data.object.get("payment_intent")
+        transaction.payment_intent = payment_intent_id
         if not transaction.customer_email:
             if event.data.object.get("customer_email"):
                 transaction.customer_email = event.data.object.get("customer_email")
@@ -63,6 +64,13 @@ class StripeWebhooks(APIView):
                     "email"
                 )
         if event.data.object.get("payment_status") == "paid":
+            # Updating receipt_email so that Stripe could use it to send a receipt.
+            # For some reason Stripe doesn't use a customer's email to send a receipt by default.
+            # We need to get this email from Stripe session, after the customer filled it
+            # in the form and update payment_intent accordingly. Once it's updated, Stripe
+            # can use it for email receipts.
+            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            payment_intent.update(receipt_email=transaction.customer_email)
             transaction.status = Transaction.Status.SUCCESS
 
         if transaction.status != Transaction.Status.SUCCESS:
@@ -80,15 +88,7 @@ class StripeWebhooks(APIView):
             return
         if not transaction.customer_email and event.data.object.get("receipt_email"):
             transaction.customer_email = event.data.object.get("receipt_email")
-        if transaction.status == Transaction.Status.SUCCESS:
-            # Updating receipt_email so that Stripe could use it to send a receipt.
-            # For some reason Stripe doesn't use a customer's email to send a receipt by default.
-            # We need to get this email from Stripe session, after the customer filled it
-            # in the form and update payment_intent accordingly. Once it's updated, Stripe
-            # can use it for email receipts.
-            payment_intent = stripe.PaymentIntent.retrieve(transaction_payment_id)
-            payment_intent.update(receipt_email=transaction.customer_email)
-        else:
+        if transaction.status != Transaction.Status.SUCCESS:
             transaction.status = PAYMENT_INTENT_TRANSACTION_EVENT_TO_STATUS.get(event.get("type"))
         transaction.save()
 
