@@ -50,7 +50,9 @@ class StripeWebhooks(APIView):
     def session_transaction_events(self, event: stripe.Event):
         transaction_id = event.data.object.get("client_reference_id")
         try:
-            transaction = Transaction.objects.get(id=int(transaction_id))
+            transaction = Transaction.objects.select_related("customer", "seller").get(
+                id=int(transaction_id)
+            )
         except (Transaction.DoesNotExist, TypeError):
             request_logger.error("There is no transaction with ID: %s", (transaction_id,))
             return
@@ -64,14 +66,18 @@ class StripeWebhooks(APIView):
                     "email"
                 )
         if event.data.object.get("payment_status") == "paid":
-            # Updating receipt_email so that Stripe could use it to send a receipt.
-            # For some reason Stripe doesn't use a customer's email to send a receipt by default.
-            # We need to get this email from Stripe session, after the customer filled it
-            # in the form and update payment_intent accordingly. Once it's updated, Stripe
-            # can use it for email receipts.
-
-            # payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-            # payment_intent.update(receipt_email=transaction.customer_email)
+            # Still unclear how to make stripe to send receipts to customers. Now it's only available
+            # if seller allows this in their Stripe account dahsboard
+            customer_email = (
+                transaction.customer.email
+                if transaction.customer is not None
+                else transaction.customer_email
+            )
+            customer_name = (
+                transaction.customer.first_name if transaction.customer is not None else None
+            )
+            seller_email = transaction.seller.email
+            seller_name = transaction.seller.first_name
             send_mailing(
                 subject="Eggslist Notification: Sale!",
                 mail_template="emails/stripe_purchase_seller.html",
@@ -79,14 +85,12 @@ class StripeWebhooks(APIView):
                     "website_profile_url": f"{settings.SITE_URL}/profile",
                     "product_title": transaction.product.title,
                     "product_url": f"{settings.SITE_URL}/catalog/product?slug={transaction.product.slug}",
+                    "customer_email": customer_email,
+                    "customer_name": customer_name,
                 },
                 users=[transaction.seller],
             )
-            customer_email = (
-                transaction.customer.email
-                if transaction.customer is not None
-                else transaction.customer_email
-            )
+
             if customer_email is not None:
                 send_mailing(
                     subject="Eggslist Notification: Purchase!",
@@ -95,6 +99,8 @@ class StripeWebhooks(APIView):
                     mail_object={
                         "product_title": transaction.product.title,
                         "product_url": f"{settings.SITE_URL}/catalog/product?slug={transaction.product.slug}",
+                        "seller_email": seller_email,
+                        "seller_name": seller_name,
                     },
                 )
             transaction.status = Transaction.Status.SUCCESS

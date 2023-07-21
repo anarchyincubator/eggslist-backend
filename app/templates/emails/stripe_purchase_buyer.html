@@ -6,8 +6,9 @@
 <body>
 <div id="email-container">
   <div id="main-text-container">
-    <h2>Dear Customer</h2>
-    <p>We want to inform your purchase of <a href="{{ obj.product_url }}">{{ obj.product_title }}</a> has been processed successfully.
+	  <h2>Dear {% firstof customer_name 'Customer' %}</h2>
+    <p>We want to inform your purchase of <a href="{{ obj.product_url }}">{{ obj.product_title }}</a> has been processed successfully.<br>
+    Please use this email to contact {{ obj.seller_name }} <a href="mailto:{{ obj.seller_email }}">{{ obj.seller_email }}</a> if necessary
     </p>
   </div>
 </div>
