@@ -1,7 +1,8 @@
 from adminsortable2.admin import SortableAdminMixin
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import Count, DateTimeField, F, Max, Min, Sum, Value
 from django.db.models.functions import Trunc
+from django.utils.translation import ngettext
 
 from eggslist.store import models
 from eggslist.utils.admin import ImageAdmin
@@ -34,11 +35,20 @@ class SubcategoryAdmin(admin.ModelAdmin):
 
 @admin.register(models.ProductArticle)
 class ProductArticleAdmin(ImageAdmin):
-    list_display = ("title", "subcategory", "seller", "is_hidden", "is_out_of_stock", "is_banned")
+    list_display = (
+        "title",
+        "subcategory",
+        "seller",
+        "is_hidden",
+        "is_out_of_stock",
+        "is_banned",
+        "is_archived",
+    )
     list_display_images = ("image",)
     list_select_related = ("seller", "subcategory__category")
     readonly_fields = ("engagement_count", "date_created", "slug")
     search_fields = (
+        "id",
         "subcategory__name",
         "subcategory__category__name",
         "seller__email",
@@ -51,9 +61,41 @@ class ProductArticleAdmin(ImageAdmin):
         "is_hidden",
         "is_out_of_stock",
         "is_banned",
+        "is_archived",
         "date_created",
         "subcategory__category",
     )
+    ordering = ("is_archived",)
+    actions = ("mark_as_archived", "unmark_as_archived")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def mark_as_archived(self, request, queryset):
+        updated = queryset.update(is_archived=True)
+        self.message_user(
+            request,
+            ngettext(
+                "%d product article was marked as archived.",
+                "%d product articles were marked as archived.",
+                updated,
+            )
+            % updated,
+            messages.SUCCESS,
+        )
+
+    def unmark_as_archived(self, request, queryset):
+        updated = queryset.update(is_archived=False)
+        self.message_user(
+            request,
+            ngettext(
+                "%d product article was unmarked as archived",
+                "%d product articles were unmarked as archived",
+                updated,
+            )
+            % updated,
+            messages.SUCCESS,
+        )
 
 
 @admin.register(models.Transaction)
