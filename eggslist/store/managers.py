@@ -34,27 +34,29 @@ class ProductArticlManager(Manager):
         return qs.annotate(distance=Distance("seller__zip_code__location", city.location))
 
     def get_recently_viewed_for(self, user):
-        qs = self.filter(user_view_timestamps__user=user, is_hidden=False)
+        qs = self.filter(user_view_timestamps__user=user, is_hidden=False, is_archived=False)
         return self._annotate_with_favorites(qs, user).order_by(
             "-user_view_timestamps__timestamp"
         )[:8]
 
     def get_for(self, user):
-        return self.filter(seller=user, is_hidden=False).select_related(
+        return self.filter(seller=user, is_hidden=False, is_archived=False).select_related(
             "subcategory",
             "seller__zip_code__city__state",
             "seller__stripe_connection",
         )
 
     def get_for_other(self, user, other_user_id):
-        qs = self.filter(seller_id=other_user_id, is_hidden=False).select_related(
+        qs = self.filter(
+            seller_id=other_user_id, is_hidden=False, is_archived=False
+        ).select_related(
             "subcategory",
             "seller__stripe_connection",
         )
         return self._annotate_with_favorites(qs, user=user)
 
     def get_hidden_for(self, user):
-        return self.filter(seller=user, is_hidden=True).select_related(
+        return self.filter(seller=user, is_hidden=True, is_archived=False).select_related(
             "subcategory",
             "seller__zip_code__city__state",
             "seller__stripe_connection",
@@ -71,6 +73,7 @@ class ProductArticlManager(Manager):
             ~Q(slug=instance.slug),
             subcategory=instance.subcategory,
             is_hidden=False,
+            is_archived=False,
             distance__lte=D(mi=lookup_radius),
         )[:4]
 
@@ -81,7 +84,9 @@ class ProductArticlManager(Manager):
         )
         qs = self._annotate_with_distance(qs, city)
         qs = self._annotate_with_favorites(qs, user=user)
-        return qs.filter(~Q(slug=instance.slug), is_hidden=False, seller=instance.seller)[:4]
+        return qs.filter(
+            ~Q(slug=instance.slug), is_hidden=False, is_archived=False, seller=instance.seller
+        )[:4]
 
     def get_all_catalog_no_hidden(self, user, user_id) -> QuerySet:
         city, lookup_radius, is_undefined = UserLocationStorage.get_user_location(user_id=user_id)
@@ -90,10 +95,12 @@ class ProductArticlManager(Manager):
         )
         qs = self._annotate_with_distance(qs, city=city)
         qs = self._annotate_with_favorites(qs, user=user)
-        return qs.filter(is_hidden=False, distance__lte=D(mi=int(lookup_radius)))
+        return qs.filter(
+            is_hidden=False, is_archived=False, distance__lte=D(mi=int(lookup_radius))
+        )
 
     def get_all_catalog_with_hidden(self, user, user_id):
-        qs = self.select_related(
+        qs = self.filter(is_archived=False).select_related(
             "seller__zip_code__city__state", "seller__stripe_connection", "subcategory"
         )
         return self._annotate_with_favorites(qs, user=user)
