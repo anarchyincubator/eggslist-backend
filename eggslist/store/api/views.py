@@ -174,7 +174,8 @@ class ProductArticleDetailAPIView(AnonymousUserIdAPIMixin, generics.RetrieveUpda
 
     def perform_destroy(self, instance):
         self.permit_operation(instance)
-        return super().perform_destroy(instance)
+        instance.is_archived = True
+        instance.save()
 
     def perform_update(self, serializer):
         self.permit_operation(serializer.instance)

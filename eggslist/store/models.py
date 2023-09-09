@@ -73,6 +73,11 @@ class ProductArticle(TitleSlugModel):
         help_text=_("Nubmer of clicks on `Contact` button in the product page"),
         default=0,
     )
+    is_archived = models.BooleanField(
+        verbose_name=_("is archived"),
+        default=False,
+        help_text=_("Whether or not the item is shown in the store"),
+    )
     objects = ProductArticlManager()
 
     class Meta:
