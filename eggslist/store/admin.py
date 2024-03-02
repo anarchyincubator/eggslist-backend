@@ -68,8 +68,6 @@ class ProductArticleAdmin(ImageAdmin):
     ordering = ("is_archived",)
     actions = ("mark_as_archived", "unmark_as_archived")
 
-    def has_delete_permission(self, request, obj=None):
-        return False
 
     def mark_as_archived(self, request, queryset):
         updated = queryset.update(is_archived=True)
