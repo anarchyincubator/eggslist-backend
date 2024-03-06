@@ -135,8 +135,9 @@ class Transaction(models.Model):
     product = models.ForeignKey(
         verbose_name=_("product"),
         to="ProductArticle",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         related_name="transactions",
+        null=True,
     )
 
     price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2)
