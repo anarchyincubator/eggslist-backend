@@ -49,6 +49,14 @@ class Subcategory(NameSlugModel):
 
 class ProductArticle(TitleSlugModel):
     description = models.TextField(verbose_name=_("description"))
+    category = models.ForeignKey(
+        verbose_name=_("category"),
+        to="Category",
+        related_name="products",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     subcategory = models.ForeignKey(
         verbose_name=_("subcategory"), to="Subcategory", on_delete=models.CASCADE,
         null=True, blank=True,
