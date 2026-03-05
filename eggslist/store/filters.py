@@ -54,6 +54,11 @@ class ProductFilter(filters.FilterSet):
         choices=subcategory_choices,
         help_text="Subcategory's slug which user wants to get. Can be used multiple times \n e.g '.?subcategory=chicken-eggs&subcategory=goose-eggs'.",
     )
+    category = NonValidatingMultipleChoiceFilter(
+        field_name="category__slug",
+        choices=[],
+        help_text="Category's slug for listing categories. Can be used multiple times \n e.g '.?category=farms&category=stores'.",
+    )
     ordering = FavoriteFarmOrderingFilter(
         choices=(
             ("relevance", "Relevance"),
@@ -73,4 +78,4 @@ class ProductFilter(filters.FilterSet):
 
     class Meta:
         model = models.ProductArticle
-        fields = ("subcategory", "allow_pickup", "allow_delivery")
+        fields = ("subcategory", "category", "allow_pickup", "allow_delivery")
