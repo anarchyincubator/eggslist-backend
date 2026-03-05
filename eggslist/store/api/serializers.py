@@ -30,7 +30,7 @@ class CategorySerializer(serializers.ModelSerializer):
     subcategories = SubcategorySerializer(many=True)
 
     class Meta:
-        fields = ("name", "image", "subcategories")
+        fields = ("name", "image", "subcategories", "is_listing")
         model = models.Category
 
 
@@ -91,11 +91,14 @@ class ProductArticleSerializer(ProductSerializerBase):
     slug = serializers.CharField(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     is_banned = serializers.BooleanField(read_only=True)
+    price = serializers.DecimalField(max_digits=8, decimal_places=2, required=False, allow_null=True)
     subcategory_slug = serializers.SlugRelatedField(
         source="subcategory",
         slug_field="slug",
         queryset=models.Subcategory.objects.all(),
         write_only=True,
+        required=False,
+        allow_null=True,
     )
     subcategory = SubcategorySerializer(read_only=True)
     you_may_also_like = serializers.SerializerMethodField()
