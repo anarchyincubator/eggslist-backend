@@ -1,12 +1,12 @@
 # Pull official base image
-FROM python:3.9-slim-buster as builder
+FROM python:3.9-slim-bookworm AS builder
 # Set up work directory
 WORKDIR /usr/src/app
 RUN mkdir /usr/src/tmp
 # Install required unix libraries
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 # Install dependencies
 RUN python -m pip install -U --force-reinstall pip
 COPY ./requirements.txt .
@@ -18,7 +18,7 @@ RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
 RUN chmod +x /usr/src/app/entrypoint.sh
 # Copy project
 
-FROM python:3.9-slim-buster as main
+FROM python:3.9-slim-bookworm AS main
 # create the app user
 # create the appropriate directories
 ENV HOME=/home/app
@@ -28,7 +28,7 @@ WORKDIR $APP_HOME
 
 # install dependencies
 RUN apt-get update &&\
-	yes | apt-get install binutils libproj-dev gdal-bin python-gdal python3-gdal
+	yes | apt-get install binutils libproj-dev gdal-bin python3-gdal
 
 # Parse env variables to .env file
 RUN --mount=type=secret,id=ENV_SECRETS cat /run/secrets/ENV_SECRETS | base64 -d >> $APP_HOME/.env
