@@ -12,12 +12,12 @@ jobs:
         run: |
           echo "Running on branch ${{ github.ref }}"
           if [ "${{ github.ref }}" = "refs/heads/production" ]; then
-            echo "::set-output name=env_name::production"
+            echo "env_name=Production" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" = "refs/heads/development" ]; then
-            echo "::set-output name=env_name::development"
+            echo "env_name=Development" >> $GITHUB_OUTPUT
           else
-             echo "::set-output name=env_name::development"
-          fi 
+            echo "env_name=Development" >> $GITHUB_OUTPUT
+          fi
     outputs:
       env_name: ${{ steps.branch_check.outputs.env_name }}
 
@@ -28,7 +28,7 @@ jobs:
     environment: ${{ needs.environment_check.outputs.env_name }}
     steps:
       - name: Checkout master
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -40,7 +40,7 @@ jobs:
 
       - name: Update Backend image in Digital Ocean Artifact Registry
         id: docker-push-tagged
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           push: true
           file: ./Dockerfile
