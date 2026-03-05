@@ -30,7 +30,7 @@ class CategorySerializer(serializers.ModelSerializer):
     subcategories = SubcategorySerializer(many=True)
 
     class Meta:
-        fields = ("name", "image", "subcategories", "is_listing")
+        fields = ("name", "slug", "image", "subcategories", "is_listing")
         model = models.Category
 
 
@@ -100,6 +100,14 @@ class ProductArticleSerializer(ProductSerializerBase):
         required=False,
         allow_null=True,
     )
+    category_slug = serializers.SlugRelatedField(
+        source="category",
+        slug_field="slug",
+        queryset=models.Category.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
     subcategory = SubcategorySerializer(read_only=True)
     you_may_also_like = serializers.SerializerMethodField()
     more_from_this_farm = serializers.SerializerMethodField()
@@ -113,6 +121,7 @@ class ProductArticleSerializer(ProductSerializerBase):
             "description",
             "subcategory",
             "subcategory_slug",
+            "category_slug",
             "date_created",
             "allow_pickup",
             "allow_delivery",
