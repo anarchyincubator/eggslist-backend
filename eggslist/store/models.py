@@ -17,6 +17,11 @@ class Category(NameSlugModel):
         options={"quality": 70},
     )
     position = models.PositiveIntegerField(default=0, blank=False, null=False)
+    is_listing = models.BooleanField(
+        verbose_name=_("is listing"),
+        default=False,
+        help_text=_("Listing categories (farms, stores, etc.) don't require subcategory or price"),
+    )
 
     class Meta:
         verbose_name = _("category")
@@ -45,7 +50,8 @@ class Subcategory(NameSlugModel):
 class ProductArticle(TitleSlugModel):
     description = models.TextField(verbose_name=_("description"))
     subcategory = models.ForeignKey(
-        verbose_name=_("subcategory"), to="Subcategory", on_delete=models.CASCADE
+        verbose_name=_("subcategory"), to="Subcategory", on_delete=models.CASCADE,
+        null=True, blank=True,
     )
     image = ProcessedImageField(
         upload_to="product_articles",
@@ -55,7 +61,7 @@ class ProductArticle(TitleSlugModel):
         null=True,
         blank=True,
     )
-    price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2)
+    price = models.DecimalField(verbose_name=_("price"), max_digits=8, decimal_places=2, null=True, blank=True)
     date_created = models.DateTimeField(verbose_name=_("date created"), auto_now_add=True)
     allow_pickup = models.BooleanField(verbose_name=_("allow pickup"), default=True)
     allow_delivery = models.BooleanField(verbose_name=_("allow delivery"), default=False)
